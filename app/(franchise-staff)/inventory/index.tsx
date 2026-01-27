@@ -35,15 +35,7 @@ export default function StoreInventoryScreen() {
 
   return (
     <View style={styles.container}>
-      <Header
-        title="Store Inventory"
-        subtitle="Downtown Branch"
-        rightElement={
-          <TouchableOpacity style={styles.addButton}>
-            <Ionicons name="add" size={24} color={COLORS.textLight} />
-          </TouchableOpacity>
-        }
-      />
+
 
       {/* Stats */}
       <View style={[styles.statsContainer, styles.contentAfterHeader]}>

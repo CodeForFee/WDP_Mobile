@@ -214,7 +214,7 @@ export default function SupplyOrdersScreen() {
             onPress={() => router.push('/(franchise-staff)/receiving')}
           >
             <Ionicons name="checkmark" size={16} color={COLORS.textLight} />
-            <Text style={[styles.actionButtonText, { color: COLORS.textLight }]}>Xác nhận nhận hàng</Text>
+            <Text style={[styles.actionButtonText, { color: COLORS.textLight }]}>Xác nhận</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -223,21 +223,11 @@ export default function SupplyOrdersScreen() {
 
   return (
     <View style={styles.container}>
-      {/* <Header
-        title="Đơn đặt hàng"
-        subtitle="Theo dõi đơn từ Bếp trung tâm"
-        rightElement={
-          <TouchableOpacity
-            style={styles.addButton}
-            onPress={() => router.push('/(franchise-staff)/orders/create')}
-          >
-            <Ionicons name="add" size={24} color={COLORS.textLight} />
-          </TouchableOpacity>
-        }
-      /> */}
+      {/* Header hoặc khoảng trống phía trên */}
+      <View style={styles.contentAfterHeader} />
 
       {/* Stats Summary */}
-      <View style={[styles.statsRow, styles.contentAfterHeader]}>
+      <View style={styles.statsRow}>
         <View style={[styles.statItem, { backgroundColor: COLORS.warningLight }]}>
           <Text style={[styles.statValue, { color: COLORS.warningDark }]}>{pendingCount}</Text>
           <Text style={styles.statLabel}>Đang xử lý</Text>
@@ -252,33 +242,34 @@ export default function SupplyOrdersScreen() {
         </View>
       </View>
 
-      {/* Filter Tabs */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.tabsScroll}
-        contentContainerStyle={styles.tabsContainer}
-      >
-        {tabs.map((tab) => (
-          <TouchableOpacity
-            key={tab}
-            style={[
-              styles.tab,
-              activeTab === tab && styles.tabActive,
-            ]}
-            onPress={() => setActiveTab(tab)}
-          >
-            <Text
+      {/* Filter Tabs - Bọc trong View để không bị che */}
+      <View style={styles.tabsWrapper}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.tabsContainer}
+        >
+          {tabs.map((tab) => (
+            <TouchableOpacity
+              key={tab}
               style={[
-                styles.tabText,
-                activeTab === tab && styles.tabTextActive,
+                styles.tab,
+                activeTab === tab && styles.tabActive,
               ]}
+              onPress={() => setActiveTab(tab)}
             >
-              {tab}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+              <Text
+                style={[
+                  styles.tabText,
+                  activeTab === tab && styles.tabTextActive,
+                ]}
+              >
+                {tab}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
 
       {/* Order List */}
       <FlatList
@@ -311,23 +302,14 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
-  addButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: COLORS.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  // Content spacing after header
   contentAfterHeader: {
     paddingTop: SPACING.md,
   },
-  // Stats
+  // --- Khối Stats (Thống kê nhanh) ---
   statsRow: {
     flexDirection: 'row',
     paddingHorizontal: SPACING.base,
-    paddingVertical: SPACING.md,
+    paddingBottom: SPACING.sm,
     gap: SPACING.sm,
   },
   statItem: {
@@ -337,220 +319,225 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.md,
   },
   statValue: {
-    fontSize: TYPOGRAPHY.fontSize.xl,
-    fontWeight: TYPOGRAPHY.fontWeight.bold,
+    fontSize: 20,
+    fontWeight: 'bold',
   },
   statLabel: {
-    fontSize: TYPOGRAPHY.fontSize.xs,
+    fontSize: 12,
     color: COLORS.textMuted,
     marginTop: 2,
   },
-  // Tabs
-  tabsScroll: {
-    flexGrow: 0,
-    marginBottom: SPACING.sm,
+  // --- Khối Filter Tabs (Thanh lọc) ---
+  tabsWrapper: {
+    height: 50,
+    marginBottom: SPACING.xs,
   },
   tabsContainer: {
     paddingHorizontal: SPACING.base,
-    paddingVertical: SPACING.sm,
-    gap: SPACING.sm,
-    alignItems: 'center', // Align items vertically in the row
+    alignItems: 'center',
+    gap: 10,
+    paddingRight: 40,
   },
   tab: {
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.sm,
-    borderRadius: RADIUS.full,
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    borderRadius: 20,
     backgroundColor: COLORS.backgroundSecondary,
   },
   tabActive: {
     backgroundColor: COLORS.primary,
   },
   tabText: {
-    fontSize: TYPOGRAPHY.fontSize.sm,
+    fontSize: 14,
     color: COLORS.textSecondary,
-    fontWeight: TYPOGRAPHY.fontWeight.medium,
+    fontWeight: '500',
   },
   tabTextActive: {
-    color: COLORS.textLight,
+    color: '#FFF',
+    fontWeight: '700',
   },
-  // List
+  // --- Danh sách đơn hàng ---
   listContent: {
     padding: SPACING.base,
-    paddingBottom: 120,
+    paddingBottom: 150, // Để không bị Bottom Nav nổi che
   },
-  // Order Card
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 50,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: COLORS.textMuted,
+    marginTop: 12,
+  },
+  // --- Thẻ đơn hàng (Order Card) ---
   orderCard: {
     marginBottom: SPACING.md,
+    backgroundColor: '#FFF',
+    borderRadius: RADIUS.lg,
+    padding: 16,
+    ...SHADOWS.md,
   },
   orderHeader: {
-    marginBottom: SPACING.sm,
+    marginBottom: 10,
   },
   orderIdContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: SPACING.xs,
+    marginBottom: 4,
   },
   orderId: {
-    fontSize: TYPOGRAPHY.fontSize.base,
-    fontWeight: TYPOGRAPHY.fontWeight.bold,
+    fontSize: 16,
+    fontWeight: 'bold',
     color: COLORS.textPrimary,
   },
   orderDate: {
-    fontSize: TYPOGRAPHY.fontSize.xs,
+    fontSize: 12,
     color: COLORS.textMuted,
   },
-  // Items Preview
+  // --- Danh sách sản phẩm xem trước ---
   itemsPreview: {
-    backgroundColor: COLORS.backgroundSecondary,
-    padding: SPACING.sm,
-    borderRadius: RADIUS.sm,
-    marginBottom: SPACING.sm,
+    backgroundColor: '#F9F9F9',
+    padding: 10,
+    borderRadius: 8,
+    marginVertical: 8,
   },
   itemRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: SPACING.xs,
+    gap: 6,
     marginBottom: 4,
   },
   itemText: {
-    fontSize: TYPOGRAPHY.fontSize.sm,
-    color: COLORS.textSecondary,
+    fontSize: 14,
+    color: '#444',
   },
   moreItems: {
-    fontSize: TYPOGRAPHY.fontSize.xs,
+    fontSize: 12,
     color: COLORS.primary,
     fontStyle: 'italic',
     marginTop: 4,
   },
   orderDivider: {
     height: 1,
-    backgroundColor: COLORS.border,
-    marginVertical: SPACING.sm,
+    backgroundColor: '#EEE',
+    marginVertical: 10,
   },
-  // Delivery Info
+  // --- Thông tin vận chuyển (Đang giao) ---
   deliveryInfo: {
     backgroundColor: COLORS.primaryLight,
-    padding: SPACING.sm,
-    borderRadius: RADIUS.sm,
-    marginBottom: SPACING.sm,
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 10,
   },
   deliveryRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: SPACING.sm,
+    gap: 8,
     marginBottom: 4,
   },
   deliveryText: {
-    fontSize: TYPOGRAPHY.fontSize.sm,
+    fontSize: 14,
     color: COLORS.textPrimary,
   },
-  // Received Info
+  // --- Thông tin đã nhận ---
   receivedInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: SPACING.sm,
+    gap: 8,
     backgroundColor: COLORS.successLight,
-    padding: SPACING.sm,
-    borderRadius: RADIUS.sm,
-    marginBottom: SPACING.sm,
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 10,
   },
   receivedText: {
-    fontSize: TYPOGRAPHY.fontSize.sm,
+    fontSize: 13,
     color: COLORS.successDark,
   },
-  // Cancelled Info
+  // --- Thông tin đã hủy ---
   cancelledInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: SPACING.sm,
+    gap: 8,
     backgroundColor: COLORS.errorLight,
-    padding: SPACING.sm,
-    borderRadius: RADIUS.sm,
-    marginBottom: SPACING.sm,
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 10,
   },
   cancelledText: {
-    fontSize: TYPOGRAPHY.fontSize.sm,
+    fontSize: 13,
     color: COLORS.errorDark,
   },
-  // Footer
+  // --- Phần chân thẻ đơn hàng (Footer) ---
   orderFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-end',
+    marginTop: 5,
   },
   deliveryLabel: {
-    fontSize: TYPOGRAPHY.fontSize.xs,
+    fontSize: 12,
     color: COLORS.textMuted,
   },
   deliveryDate: {
-    fontSize: TYPOGRAPHY.fontSize.sm,
-    fontWeight: TYPOGRAPHY.fontWeight.medium,
+    fontSize: 14,
+    fontWeight: '600',
     color: COLORS.textPrimary,
   },
   totalContainer: {
     alignItems: 'flex-end',
   },
   totalLabel: {
-    fontSize: TYPOGRAPHY.fontSize.xs,
+    fontSize: 12,
     color: COLORS.textMuted,
   },
   totalValue: {
-    fontSize: TYPOGRAPHY.fontSize.lg,
-    fontWeight: TYPOGRAPHY.fontWeight.bold,
+    fontSize: 18,
+    fontWeight: 'bold',
     color: COLORS.primary,
   },
-  // Action Buttons
+  // --- Nút bấm hành động ---
   actionButtons: {
     flexDirection: 'row',
-    gap: SPACING.sm,
-    marginTop: SPACING.md,
-    paddingTop: SPACING.sm,
+    gap: 10,
+    marginTop: 12,
+    paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: COLORS.border,
+    borderTopColor: '#EEE',
   },
   actionButton: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: SPACING.xs,
-    paddingVertical: SPACING.sm,
-    borderRadius: RADIUS.sm,
+    gap: 6,
+    paddingVertical: 10,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: COLORS.primary,
   },
   actionButtonPrimary: {
     backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
   },
   actionButtonText: {
-    fontSize: TYPOGRAPHY.fontSize.sm,
-    fontWeight: TYPOGRAPHY.fontWeight.medium,
+    fontSize: 14,
+    fontWeight: '600',
     color: COLORS.primary,
   },
-  // Empty State
-  emptyContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: SPACING['2xl'],
-  },
-  emptyText: {
-    fontSize: TYPOGRAPHY.fontSize.base,
-    color: COLORS.textMuted,
-    marginTop: SPACING.md,
-  },
-  // FAB
+  // --- Nút dấu cộng nổi (FAB) ---
   fab: {
     position: 'absolute',
-    bottom: 100,
-    right: SPACING.base,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    bottom: 30,
+    right: 20,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     backgroundColor: COLORS.primary,
     alignItems: 'center',
     justifyContent: 'center',
     ...SHADOWS.lg,
+    zIndex: 999,
   },
 });
