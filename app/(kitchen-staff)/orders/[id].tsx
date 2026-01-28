@@ -33,7 +33,7 @@ const ORDER_DETAILS = {
 export default function KitchenOrderDetailScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
-  const order = ORDER_DETAILS[id as string] || ORDER_DETAILS['1']; // Fallback for demo
+  const order = ORDER_DETAILS['1']; // Fallback for demo
   const [status, setStatus] = useState(order.status);
 
   const handleUpdateStatus = (newStatus: string) => {
@@ -53,7 +53,7 @@ export default function KitchenOrderDetailScreen() {
     );
   };
 
-  const renderItem = ({ item }) => (
+  const renderItem = ({ item }: { item: any }) => (
     <View style={styles.itemRow}>
       <Text style={styles.itemName}>{item.name}</Text>
       <Text style={styles.itemQuantity}>{item.quantity} {item.unit}</Text>
@@ -77,7 +77,7 @@ export default function KitchenOrderDetailScreen() {
           <View style={styles.infoHeader}>
             <Text style={styles.storeName}>{order.store}</Text>
             <View style={[styles.statusBadge,
-              status === 'Pending' ? styles.statusPending :
+            status === 'Pending' ? styles.statusPending :
               status === 'Processing' ? styles.statusProcessing : styles.statusReady
             ]}>
               <Text style={styles.statusText}>{status}</Text>

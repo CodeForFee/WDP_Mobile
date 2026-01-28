@@ -53,12 +53,12 @@ export default function KitchenOrdersScreen() {
     <View style={styles.container}>
       <Header
         title="Central Kitchen"
-        subtitle="Incoming Orders"
-        rightElement={
-          <TouchableOpacity>
-            <Ionicons name="notifications" size={24} color={COLORS.textPrimary} />
-          </TouchableOpacity>
-        }
+      // subtitle="Incoming Orders"
+      // rightElement={
+      //   <TouchableOpacity>
+      //     <Ionicons name="notifications" size={24} color={COLORS.textPrimary} />
+      //   </TouchableOpacity>
+      // }
       />
 
       {/* Stats Row */}
@@ -201,6 +201,8 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.sm,
     borderRadius: RADIUS.full,
     backgroundColor: COLORS.backgroundSecondary,
+    borderWidth: 1,
+    borderColor: COLORS.borderDark, // Add dark border
   },
   tabActive: {
     backgroundColor: COLORS.primary,

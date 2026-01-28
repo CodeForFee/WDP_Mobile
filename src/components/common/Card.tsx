@@ -43,7 +43,8 @@ const styles = StyleSheet.create({
     padding: SPACING.lg, // More breathing room
     marginBottom: SPACING.md,
     ...SHADOWS.sm, // Softer default shadow
-    borderWidth: 0, // Remove borders for cleaner look
+    borderWidth: 1, // Add light border
+    borderColor: COLORS.borderDark, // Darker border for visibility
   },
   elevated: {
     ...SHADOWS.md,

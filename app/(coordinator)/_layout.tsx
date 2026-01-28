@@ -1,16 +1,100 @@
-import { Tabs } from 'expo-router';
+import React from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Platform, Dimensions } from 'react-native';
+import { Tabs, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { View, Platform, StyleSheet } from 'react-native';
-import { COLORS, SHADOWS } from '../../src/constants/theme';
+import Animated, { useAnimatedStyle, withTiming, Easing } from 'react-native-reanimated';
+import { COLORS, SHADOWS, SPACING, RADIUS } from '../../src/constants/theme';
 
-function TabBarIcon({ name, color, focused }: { name: keyof typeof Ionicons.glyphMap; color: string; focused: boolean }) {
-  const iconName = focused ? name : `${name}-outline` as any;
+const { width } = Dimensions.get('window');
+const TAB_BAR_WIDTH = width - 40;
+
+function BackButton() {
+  const router = useRouter();
   return (
-    <View style={[
-      styles.iconContainer,
-      focused && styles.iconActive
-    ]}>
-      <Ionicons name={iconName} size={24} color={focused ? COLORS.textLight : color} />
+    <TouchableOpacity
+      onPress={() => router.back()}
+      style={{ marginLeft: 16, padding: 4 }}
+    >
+      <Ionicons name="arrow-back" size={24} color={COLORS.textPrimary} />
+    </TouchableOpacity>
+  );
+}
+
+function TabItem({ route, isFocused, navigation }: any) {
+  // Hiệu ứng trượt thẳng dứt khoát lên trên
+  const animatedIconStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: withTiming(isFocused ? -25 : 0, { duration: 250, easing: Easing.out(Easing.quad) }) }],
+  }));
+
+  const animatedCircleStyle = useAnimatedStyle(() => ({
+    opacity: withTiming(isFocused ? 1 : 0),
+    transform: [{ translateY: withTiming(isFocused ? -25 : 20, { duration: 250, easing: Easing.out(Easing.quad) }) }],
+  }));
+
+  const getIconName = (name: string): any => {
+    switch (name) {
+      case 'index': return 'home';
+      case 'orders/index': return 'clipboard';
+      case 'dispatch/index': return 'car';
+      case 'issues/index': return 'alert-circle';
+      default: return 'help-circle';
+    }
+  };
+
+  return (
+    <TouchableOpacity
+      onPress={() => navigation.navigate(route.name)}
+      style={styles.tabItem}
+      activeOpacity={1}
+    >
+      {/* VÒNG TRÒN CAM CÓ VIỀN TRẮNG DÀY (Tạo hiệu ứng ôm viền) */}
+      <Animated.View style={[styles.activeCircle, animatedCircleStyle]}>
+        {/* Lớp viền phụ màu xám/đậm trùng màu viền Bottom Nav */}
+        <View style={styles.outerBorderRing} />
+      </Animated.View>
+
+      <Animated.View style={animatedIconStyle}>
+        <Ionicons
+          name={isFocused ? getIconName(route.name) : `${getIconName(route.name)}-outline`}
+          size={24}
+          color={isFocused ? '#FFF' : COLORS.textMuted}
+        />
+      </Animated.View>
+    </TouchableOpacity>
+  );
+}
+
+function CustomTabBar({ state, navigation }: any) {
+  const currentRouteName = state.routes[state.index].name;
+
+  // Routes where the bottom bar is VISIBLE
+  const visibleRoutes = ['index', 'orders/index', 'dispatch/index', 'issues/index'];
+
+  if (!visibleRoutes.includes(currentRouteName)) {
+    return null;
+  }
+
+  // Filter only main tabs
+  const mainRoutes = state.routes.filter((route: any) =>
+    visibleRoutes.includes(route.name)
+  );
+
+  return (
+    <View style={styles.container}>
+      {/* VIÊN THUỐC TRẮNG - VIỀN ĐẬM DỄ NHẬN BIẾT */}
+      <View style={styles.pillContainer}>
+        {mainRoutes.map((route: any, index: number) => {
+          const actualIndex = state.routes.indexOf(route);
+          return (
+            <TabItem
+              key={route.key}
+              route={route}
+              isFocused={state.index === actualIndex}
+              navigation={navigation}
+            />
+          );
+        })}
+      </View>
     </View>
   );
 }
@@ -18,41 +102,34 @@ function TabBarIcon({ name, color, focused }: { name: keyof typeof Ionicons.glyp
 export default function CoordinatorLayout() {
   return (
     <Tabs
+      tabBar={(props) => <CustomTabBar {...props} />}
       screenOptions={{
-        tabBarActiveTintColor: COLORS.primary,
-        tabBarInactiveTintColor: COLORS.textMuted,
-        tabBarStyle: styles.tabBar,
-        tabBarItemStyle: styles.tabBarItem,
         headerShown: false,
-        tabBarShowLabel: false,
+        tabBarStyle: { display: 'none' }, // Ensure standard tab bar is hidden
       }}
     >
+      <Tabs.Screen name="index" options={{ headerShown: false }} />
+      <Tabs.Screen name="orders/index" options={{ headerShown: false }} />
+      <Tabs.Screen name="dispatch/index" options={{ headerShown: false }} />
+      <Tabs.Screen name="issues/index" options={{ headerShown: false }} />
+
+      {/* Hidden Screens */}
       <Tabs.Screen
-        name="index"
+        name="orders/[id]"
         options={{
-          tabBarIcon: ({ color, focused }) => <TabBarIcon name="home" color={color} focused={focused} />,
+          href: null,
+          headerShown: false,
         }}
       />
       <Tabs.Screen
-        name="orders"
+        name="dispatch/[id]"
         options={{
-          tabBarIcon: ({ color, focused }) => <TabBarIcon name="clipboard" color={color} focused={focused} />,
+          href: null,
+          headerShown: false,
         }}
       />
       <Tabs.Screen
-        name="dispatch"
-        options={{
-          tabBarIcon: ({ color, focused }) => <TabBarIcon name="car" color={color} focused={focused} />,
-        }}
-      />
-      <Tabs.Screen
-        name="delivery"
-        options={{
-          tabBarIcon: ({ color, focused }) => <TabBarIcon name="time" color={color} focused={focused} />,
-        }}
-      />
-      <Tabs.Screen
-        name="issues"
+        name="delivery/index" // Folder
         options={{
           href: null,
         }}
@@ -68,33 +145,54 @@ export default function CoordinatorLayout() {
 }
 
 const styles = StyleSheet.create({
-  tabBar: {
+  container: {
     position: 'absolute',
-    bottom: 30, // Increased bottom spacing
-    left: 20,
-    right: 20,
-    height: 70,
-    backgroundColor: COLORS.cardBackground,
-    borderRadius: 35,
-    borderTopWidth: 0,
+    bottom: 30,
+    alignSelf: 'center',
+    width: TAB_BAR_WIDTH,
+  },
+  pillContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#FFF',
+    height: 60,
+    borderRadius: 30,
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    paddingHorizontal: 10,
+    // VIỀN NGOÀI ĐẬM
+    borderWidth: 2.5,
+    borderColor: '#D1D1D1',
     ...SHADOWS.lg,
-    elevation: 10,
-    paddingBottom: 0,
+    elevation: 15,
   },
-  tabBarItem: {
-    height: 70,
-    paddingVertical: 10,
-  },
-  iconContainer: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+  tabItem: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    height: '100%',
   },
-  iconActive: {
+  activeCircle: {
+    position: 'absolute',
+    width: 62,
+    height: 62,
+    borderRadius: 31,
     backgroundColor: COLORS.primary,
+    // VIỀN TRẮNG CHÍNH
+    borderWidth: 6,
+    borderColor: '#FFF',
+    justifyContent: 'center',
+    alignItems: 'center',
     ...SHADOWS.md,
-    transform: [{ translateY: -5 }],
+    elevation: 10,
+  },
+  // VIỀN NGOÀI CÙNG CỦA NÚT CAM
+  outerBorderRing: {
+    position: 'absolute',
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    borderWidth: 2.5,
+    borderColor: '#D1D1D1', // Cùng màu với viền của pillContainer
+    zIndex: -1,
   },
 });

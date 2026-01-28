@@ -1,7 +1,9 @@
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, Alert, ScrollView } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
+import { COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS } from '../../../src/constants/theme';
+import { Header, Card, StatusBadge, Button } from '../../../src/components/common';
 
 // Mock Data
 const INVENTORY_DETAILS = {
@@ -31,7 +33,7 @@ const INVENTORY_DETAILS = {
 export default function InventoryDetailScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
-  const item = INVENTORY_DETAILS[id as string] || INVENTORY_DETAILS['1'];
+  const item = INVENTORY_DETAILS['1'];
 
   const [adjustMode, setAdjustMode] = useState<'add' | 'remove' | null>(null);
   const [adjustAmount, setAdjustAmount] = useState('');
@@ -63,13 +65,11 @@ export default function InventoryDetailScreen() {
     );
   };
 
-  const renderBatch = ({ item: batch }) => (
+  const renderBatch = ({ item: batch }: any) => (
     <View style={styles.batchCard}>
       <View style={styles.batchHeader}>
         <Text style={styles.batchId}>{batch.id}</Text>
-        <View style={[styles.statusBadge, batch.status === 'Good' ? styles.bgGood : styles.bgWarning]}>
-          <Text style={styles.statusText}>{batch.status}</Text>
-        </View>
+        <StatusBadge status={batch.status} type={batch.status === 'Good' ? 'success' : 'warning'} size="sm" />
       </View>
       <View style={styles.batchDetails}>
         <Text style={styles.batchText}>Qty: {batch.quantity} {item.unit}</Text>
@@ -80,25 +80,22 @@ export default function InventoryDetailScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#333" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Inventory Details</Text>
-        <View style={{ width: 24 }} />
-      </View>
+      <Header
+        title="Inventory Details"
+        showBack
+        onBack={() => router.back()}
+      />
 
-      <View style={styles.content}>
+      <ScrollView contentContainerStyle={styles.content}>
         {/* Main Info */}
-        <View style={styles.mainCard}>
+        <Card style={styles.mainCard}>
           <Text style={styles.itemName}>{item.name}</Text>
           <View style={styles.quantityRow}>
             <Text style={styles.totalQuantity}>{item.totalQuantity}</Text>
             <Text style={styles.unit}>{item.unit}</Text>
           </View>
           <Text style={styles.thresholdText}>Min Threshold: {item.minThreshold} {item.unit}</Text>
-        </View>
+        </Card>
 
         {/* Quick Actions */}
         <View style={styles.actionRow}>
@@ -106,7 +103,7 @@ export default function InventoryDetailScreen() {
             style={[styles.actionButton, styles.addButton]}
             onPress={() => setAdjustMode('add')}
           >
-            <Ionicons name="add-circle-outline" size={24} color="white" />
+            <Ionicons name="add-circle-outline" size={24} color={COLORS.textLight} />
             <Text style={styles.actionBtnText}>Add Stock</Text>
           </TouchableOpacity>
 
@@ -114,7 +111,7 @@ export default function InventoryDetailScreen() {
             style={[styles.actionButton, styles.removeButton]}
             onPress={() => setAdjustMode('remove')}
           >
-            <Ionicons name="remove-circle-outline" size={24} color="white" />
+            <Ionicons name="remove-circle-outline" size={24} color={COLORS.textLight} />
             <Text style={styles.actionBtnText}>Remove Stock</Text>
           </TouchableOpacity>
         </View>
@@ -133,6 +130,8 @@ export default function InventoryDetailScreen() {
                 value={adjustAmount}
                 onChangeText={setAdjustAmount}
                 autoFocus
+                placeholderTextColor={COLORS.textMuted}
+                cursorColor={COLORS.primary}
               />
               <Text style={styles.inputUnit}>{item.unit}</Text>
             </View>
@@ -159,9 +158,10 @@ export default function InventoryDetailScreen() {
           data={item.batches}
           renderItem={renderBatch}
           keyExtractor={batch => batch.id}
+          scrollEnabled={false}
           contentContainerStyle={styles.listContent}
         />
-      </View>
+      </ScrollView>
     </View>
   );
 }
@@ -169,191 +169,163 @@ export default function InventoryDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 15,
-    backgroundColor: 'white',
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-    paddingTop: 50,
-  },
-  backButton: {
-    padding: 5,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
+    backgroundColor: COLORS.background,
   },
   content: {
-    flex: 1,
-    padding: 20,
+    padding: SPACING.base,
   },
   mainCard: {
-    backgroundColor: 'white',
-    borderRadius: 12,
-    padding: 20,
     alignItems: 'center',
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    marginBottom: SPACING.lg,
+    backgroundColor: COLORS.cardBackground,
+    ...SHADOWS.md,
   },
   itemName: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 10,
+    fontSize: TYPOGRAPHY.fontSize.xl,
+    fontWeight: TYPOGRAPHY.fontWeight.bold,
+    color: COLORS.textPrimary,
+    marginBottom: SPACING.sm,
   },
   quantityRow: {
     flexDirection: 'row',
     alignItems: 'baseline',
-    gap: 5,
+    gap: SPACING.xs,
   },
   totalQuantity: {
     fontSize: 36,
     fontWeight: 'bold',
-    color: '#007AFF',
+    color: COLORS.primary, // Using theme Primary Yellow
   },
   unit: {
-    fontSize: 18,
-    color: '#666',
+    fontSize: TYPOGRAPHY.fontSize.lg,
+    color: COLORS.textSecondary,
+    fontWeight: TYPOGRAPHY.fontWeight.medium,
   },
   thresholdText: {
-    marginTop: 10,
-    color: '#888',
+    marginTop: SPACING.sm,
+    color: COLORS.textMuted,
+    fontSize: TYPOGRAPHY.fontSize.sm,
   },
   actionRow: {
     flexDirection: 'row',
-    gap: 15,
-    marginBottom: 25,
+    gap: SPACING.md,
+    marginBottom: SPACING.lg,
   },
   actionButton: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 15,
-    borderRadius: 10,
-    gap: 8,
+    padding: SPACING.md,
+    borderRadius: RADIUS.lg,
+    gap: SPACING.sm,
+    ...SHADOWS.sm,
   },
   addButton: {
-    backgroundColor: '#34C759',
+    backgroundColor: COLORS.success, // Green
   },
   removeButton: {
-    backgroundColor: '#FF3B30',
+    backgroundColor: COLORS.error, // Red
   },
   actionBtnText: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 14,
+    color: COLORS.textLight,
+    fontWeight: TYPOGRAPHY.fontWeight.bold,
+    fontSize: TYPOGRAPHY.fontSize.sm,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 15,
-    color: '#333',
+    fontSize: TYPOGRAPHY.fontSize.lg,
+    fontWeight: TYPOGRAPHY.fontWeight.bold,
+    marginBottom: SPACING.md,
+    color: COLORS.textPrimary,
   },
   listContent: {
-    paddingBottom: 20,
+    paddingBottom: SPACING.xl,
   },
   batchCard: {
-    backgroundColor: 'white',
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 10,
-    borderLeftWidth: 4,
-    borderLeftColor: '#007AFF',
+    backgroundColor: COLORS.cardBackground,
+    padding: SPACING.md,
+    borderRadius: RADIUS.md,
+    marginBottom: SPACING.sm,
+    ...SHADOWS.sm,
   },
   batchHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 8,
+    marginBottom: SPACING.xs,
   },
   batchId: {
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  statusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  bgGood: { backgroundColor: '#d4edda' },
-  bgWarning: { backgroundColor: '#fff3cd' },
-  statusText: {
-    fontSize: 12,
-    fontWeight: 'bold',
+    fontWeight: TYPOGRAPHY.fontWeight.bold,
+    fontSize: TYPOGRAPHY.fontSize.base,
+    color: COLORS.textPrimary,
   },
   batchDetails: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    marginTop: SPACING.xs,
   },
   batchText: {
-    color: '#666',
+    color: COLORS.textSecondary,
+    fontSize: TYPOGRAPHY.fontSize.sm,
   },
   adjustContainer: {
-    backgroundColor: 'white',
-    padding: 20,
-    borderRadius: 12,
-    marginBottom: 20,
+    backgroundColor: COLORS.cardBackground,
+    padding: SPACING.lg,
+    borderRadius: RADIUS.lg,
+    marginBottom: SPACING.lg,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: COLORS.primary, // Highlight adjust modal
+    ...SHADOWS.md,
   },
   adjustTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 15,
+    fontSize: TYPOGRAPHY.fontSize.lg,
+    fontWeight: TYPOGRAPHY.fontWeight.bold,
+    marginBottom: SPACING.md,
     textAlign: 'center',
+    color: COLORS.textPrimary,
   },
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
-    backgroundColor: '#f9f9f9',
-    borderRadius: 8,
-    paddingHorizontal: 15,
+    marginBottom: SPACING.lg,
+    backgroundColor: COLORS.backgroundSecondary,
+    borderRadius: RADIUS.md,
+    paddingHorizontal: SPACING.md,
   },
   input: {
     flex: 1,
-    paddingVertical: 12,
-    fontSize: 18,
+    paddingVertical: SPACING.md,
+    fontSize: TYPOGRAPHY.fontSize.lg,
+    color: COLORS.textPrimary,
   },
   inputUnit: {
-    fontSize: 16,
-    color: '#888',
-    fontWeight: 'bold',
+    fontSize: TYPOGRAPHY.fontSize.base,
+    color: COLORS.textSecondary,
+    fontWeight: TYPOGRAPHY.fontWeight.bold,
   },
   adjustActions: {
     flexDirection: 'row',
-    gap: 10,
+    gap: SPACING.md,
   },
   cancelBtn: {
     flex: 1,
-    padding: 12,
+    padding: SPACING.md,
     alignItems: 'center',
-    borderRadius: 8,
-    backgroundColor: '#f0f0f0',
+    borderRadius: RADIUS.md,
+    backgroundColor: COLORS.backgroundTertiary,
   },
   confirmBtn: {
     flex: 1,
-    padding: 12,
+    padding: SPACING.md,
     alignItems: 'center',
-    borderRadius: 8,
-    backgroundColor: '#007AFF',
+    borderRadius: RADIUS.md,
+    backgroundColor: COLORS.primary,
   },
   cancelText: {
-    fontWeight: 'bold',
-    color: '#666',
+    fontWeight: TYPOGRAPHY.fontWeight.bold,
+    color: COLORS.textSecondary,
   },
   confirmText: {
-    fontWeight: 'bold',
-    color: 'white',
+    fontWeight: TYPOGRAPHY.fontWeight.bold,
+    color: COLORS.textOnPrimary, // Ensure contrast
   },
 });
