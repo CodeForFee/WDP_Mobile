@@ -7,55 +7,58 @@
 // COLORS
 // ============================================
 export const COLORS = {
-  // Backgrounds - Pastel White
-  background: '#FFFAF5',
-  backgroundSecondary: '#FFF5EB',
-  backgroundTertiary: '#FFF0E0',
+  // Backgrounds
+  background: '#E9E7D0',
+  backgroundSecondary: '#DFDCC0', // Slightly darker version of E9E7D0
+  backgroundTertiary: '#D5D2B0',
   cardBackground: '#FFFFFF',
 
-  // Primary - Orange
-  primary: '#FF8C00',
-  primaryLight: '#FFECD9',
-  primaryDark: '#E07800',
-  primaryGradientStart: '#FF9500',
-  primaryGradientEnd: '#FF6B00',
+  // Primary - Yellow/Amber (#FCC221)
+  primary: '#FCC221',
+  primaryLight: '#FDD86E',
+  primaryDark: '#F9A825',
+  primaryGradientStart: '#FCC221',
+  primaryGradientEnd: '#FFB300',
 
-  // Secondary - Yellow/Cream
-  secondary: '#FFD700',
-  secondaryLight: '#FFF8DC', // Cornsilk
-  cream: '#FFFACD', // LemonChiffon
+  // Secondary - Green (#11682B)
+  secondary: '#11682B',
+  secondaryLight: '#E0F2F1',
+  cream: '#FFFDE7',
 
-  // Status Colors (Softer Tones)
-  success: '#34C759', // iOS Green
-  successLight: '#E8F5E9',
-  successDark: '#1B5E20',
+  // Brand Accents
+  brandDark: '#0E431B', // Dark Green
 
-  warning: '#FF9F0A', // iOS Orange
-  warningLight: '#FFF3E0',
-  warningDark: '#E65100',
+  // Status Colors
+  success: '#11682B', // Using the green from palette
+  successLight: '#DCEDC8',
+  successDark: '#0E431B',
 
-  error: '#FF3B30', // iOS Red
+  warning: '#FCC221', // Using the primary yellow
+  warningLight: '#FFF9C4',
+  warningDark: '#F57F17',
+
+  error: '#D32F2F',
   errorLight: '#FFEBEE',
   errorDark: '#B71C1C',
 
-  info: '#007AFF', // iOS Blue
-  infoLight: '#E3F2FD',
+  info: '#0288D1',
+  infoLight: '#E1F5FE',
 
   // Text Colors
-  textPrimary: '#1C1C1E', // Almost Black
-  textSecondary: '#636366', // Dark Gray
-  textMuted: '#AEAEB2', // Light Gray
+  textPrimary: '#0E431B', // Dark Green Text
+  textSecondary: '#475D4B', // Muted Green Gray
+  textMuted: '#8D9E90',
   textLight: '#FFFFFF',
-  textOnPrimary: '#FFFFFF',
+  textOnPrimary: '#0E431B', // Dark text on bright yellow
 
   // Border Colors
-  border: '#F2F2F7', // Very Light Gray
-  borderLight: '#F9F9F9',
-  borderDark: '#D1D1D6',
+  border: '#D7D5BE',
+  borderLight: '#F2F0DC',
+  borderDark: '#0E431B', // High contrast border
 
   // Misc
-  overlay: 'rgba(0, 0, 0, 0.4)',
-  shadow: 'rgba(0, 0, 0, 0.08)',
+  overlay: 'rgba(14, 67, 27, 0.4)', // Dark green overlay
+  shadow: 'rgba(14, 67, 27, 0.1)', // Greenish shadow
   transparent: 'transparent',
 };
 
