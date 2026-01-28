@@ -129,7 +129,7 @@ export default function CoordinatorLayout() {
         }}
       />
       <Tabs.Screen
-        name="delivery" // Folder
+        name="delivery/index" // Folder
         options={{
           href: null,
         }}

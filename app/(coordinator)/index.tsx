@@ -34,7 +34,7 @@ export default function CoordinatorDashboard() {
   return (
     <View style={styles.container}>
       <StoreHeader
-        storeName="Kho trung tâm"
+        storeName="Supply Coordinator"
         storeId="Supply Chain"
         style={styles.header}
         onMenuPress={() => setSidebarVisible(true)}
