@@ -1,154 +1,158 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
+  FlatList,
   TouchableOpacity,
+  ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS } from '../../../src/constants/theme';
-import { Card, StatusBadge, Button, Header } from '../../../src/components/common';
+import { Card, StatusBadge, Header } from '../../../src/components/common';
 
-const orderSummary = [
-  { id: '1', name: 'Crispy Chicken Bucket', qty: '2x', note: '12 pieces + sides' },
-  { id: '2', name: 'Spicy Wings', qty: '1x', note: 'Extra hot sauce' },
-  { id: '3', name: 'Soft Drinks', qty: '3x', note: 'Large Cola, Sprite' },
+// Mock Data
+const SHIPMENTS = [
+  {
+    id: 'CK-4729',
+    destination: 'Store #123 - North District',
+    items: 45,
+    status: 'Ready',
+    vehicle: null,
+    time: '2:30 PM',
+  },
+  {
+    id: 'CK-4730',
+    destination: 'Store #124 - South District',
+    items: 32,
+    status: 'In Transit',
+    vehicle: 'Truck 29C-123.45',
+    time: '3:00 PM',
+    progress: 0.65,
+  },
+  {
+    id: 'CK-4728',
+    destination: 'Store #125 - West District',
+    items: 18,
+    status: 'Delivered',
+    vehicle: 'Van 29D-567.89',
+    time: '1:15 PM',
+  },
+  {
+    id: 'CK-4731',
+    destination: 'Store #126 - East District',
+    items: 60,
+    status: 'Pending',
+    vehicle: null,
+    time: '4:00 PM',
+  },
 ];
+
+type FilterTab = 'All' | 'Pending' | 'In Transit' | 'Delivered';
 
 export default function DispatchScreen() {
   const router = useRouter();
+  const [activeTab, setActiveTab] = useState<FilterTab>('All');
+
+  const filteredData = SHIPMENTS.filter(item => {
+    if (activeTab === 'All') return true;
+    if (activeTab === 'Pending') return item.status === 'Pending' || item.status === 'Ready';
+    return item.status === activeTab;
+  });
+
+  const getStatusType = (status: string) => {
+    switch (status) {
+      case 'Delivered': return 'completed';
+      case 'In Transit': return 'info';
+      case 'Ready': return 'success';
+      default: return 'warning';
+    }
+  };
+
+  const getIcon = (status: string) => {
+    switch (status) {
+      case 'Delivered': return 'checkmark-circle';
+      case 'In Transit': return 'navigate-circle';
+      case 'Ready': return 'cube';
+      default: return 'time';
+    }
+  };
+
+  const renderItem = ({ item }: { item: typeof SHIPMENTS[0] }) => (
+    <Card
+      style={styles.card}
+      onPress={() => router.push(`/(coordinator)/dispatch/${item.id}`)}
+    >
+      <View style={styles.cardHeader}>
+        <View style={styles.idRow}>
+          <View style={[styles.iconBox, { backgroundColor: COLORS.backgroundSecondary }]}>
+            <Ionicons name={getIcon(item.status) as any} size={20} color={COLORS.primary} />
+          </View>
+          <View>
+            <Text style={styles.idText}>Order #{item.id}</Text>
+            <Text style={styles.timeText}>Est: {item.time}</Text>
+          </View>
+        </View>
+        <StatusBadge status={item.status} type={getStatusType(item.status) as any} size="sm" />
+      </View>
+
+      <Text style={styles.destText} numberOfLines={1}>{item.destination}</Text>
+
+      <View style={styles.footer}>
+        <Text style={styles.itemsText}>{item.items} items</Text>
+        {item.vehicle ? (
+          <View style={styles.vehicleRow}>
+            <Ionicons name="bus-outline" size={14} color={COLORS.textMuted} />
+            <Text style={styles.vehicleText}>{item.vehicle}</Text>
+          </View>
+        ) : (
+          <Text style={styles.assignText}>Tap to Assign</Text>
+        )}
+      </View>
+
+      {item.status === 'In Transit' && (
+        <View style={styles.progressBarBg}>
+          <View style={[styles.progressBarFill, { width: `${(item.progress || 0) * 100}%` }]} />
+        </View>
+      )}
+    </Card>
+  );
 
   return (
     <View style={styles.container}>
       <Header
-        title="Ready for Delivery"
-        subtitle="Order #CK-4729"
-        showBack
-        onBack={() => router.back()}
+        title="Dispatch Management"
+        // subtitle="Logistics Overview"
         rightElement={
           <TouchableOpacity>
-            <Ionicons name="ellipsis-vertical" size={20} color={COLORS.textPrimary} />
+            <Ionicons name="search" size={24} color={COLORS.textPrimary} />
           </TouchableOpacity>
         }
       />
 
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={[styles.content, styles.contentAfterHeader]}
+      {/* Tabs */}
+      <View style={styles.tabsContainer}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabsContent}>
+          {(['All', 'Pending', 'In Transit', 'Delivered'] as FilterTab[]).map(tab => (
+            <TouchableOpacity
+              key={tab}
+              style={[styles.tab, activeTab === tab && styles.activeTab]}
+              onPress={() => setActiveTab(tab)}
+            >
+              <Text style={[styles.tabText, activeTab === tab && styles.activeTabText]}>{tab}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+
+      <FlatList
+        data={filteredData}
+        renderItem={renderItem}
+        keyExtractor={item => item.id}
+        contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
-      >
-        {/* Status Card */}
-        <Card style={styles.statusCard}>
-          <View style={styles.statusIcon}>
-            <Ionicons name="checkmark-circle" size={48} color={COLORS.success} />
-          </View>
-          <Text style={styles.statusTitle}>Package Complete!</Text>
-          <Text style={styles.statusSubtitle}>Order is packed and ready for pickup</Text>
-        </Card>
-
-        {/* Order Summary */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Order Summary</Text>
-            <StatusBadge status="READY" type="completed" size="sm" />
-          </View>
-
-          <Card>
-            {orderSummary.map((item, index) => (
-              <View key={item.id} style={[
-                styles.orderItem,
-                index < orderSummary.length - 1 && styles.orderItemBorder
-              ]}>
-                <View style={styles.orderItemIcon}>
-                  <Ionicons name="fast-food" size={20} color={COLORS.primary} />
-                </View>
-                <View style={styles.orderItemInfo}>
-                  <Text style={styles.orderItemName}>{item.name}</Text>
-                  <Text style={styles.orderItemNote}>{item.note}</Text>
-                </View>
-                <Text style={styles.orderItemQty}>{item.qty}</Text>
-              </View>
-            ))}
-          </Card>
-        </View>
-
-        {/* Delivery Information */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Delivery Information</Text>
-          <Card>
-            <View style={styles.infoRow}>
-              <View style={styles.infoIcon}>
-                <Ionicons name="person" size={20} color={COLORS.primary} />
-              </View>
-              <View style={styles.infoContent}>
-                <Text style={styles.infoLabel}>Driver Assigned</Text>
-                <Text style={styles.infoValue}>Marcus Chan • ADR-2847</Text>
-              </View>
-            </View>
-            <View style={styles.infoRow}>
-              <View style={styles.infoIcon}>
-                <Ionicons name="time" size={20} color={COLORS.primary} />
-              </View>
-              <View style={styles.infoContent}>
-                <Text style={styles.infoLabel}>Pickup Time</Text>
-                <Text style={styles.infoValue}>2:45 PM - 3:00 PM</Text>
-              </View>
-            </View>
-            <View style={styles.infoRow}>
-              <View style={styles.infoIcon}>
-                <Ionicons name="location" size={20} color={COLORS.primary} />
-              </View>
-              <View style={styles.infoContent}>
-                <Text style={styles.infoLabel}>Delivery Address</Text>
-                <Text style={styles.infoValue}>1207 Oak Street, Apt 4B</Text>
-                <Text style={styles.infoSubvalue}>Downtown District</Text>
-              </View>
-            </View>
-          </Card>
-        </View>
-
-        {/* Package Details */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Package Details</Text>
-          <View style={styles.packageGrid}>
-            <Card style={styles.packageCard}>
-              <Ionicons name="scale" size={24} color={COLORS.primary} />
-              <Text style={styles.packageValue}>2.8 kg</Text>
-              <Text style={styles.packageLabel}>Total Weight</Text>
-            </Card>
-            <Card style={styles.packageCard}>
-              <Ionicons name="cube" size={24} color={COLORS.primary} />
-              <Text style={styles.packageValue}>3 bags</Text>
-              <Text style={styles.packageLabel}>Package Count</Text>
-            </Card>
-          </View>
-          <View style={styles.packageGrid}>
-            <Card style={styles.packageCard}>
-              <Ionicons name="thermometer" size={24} color={COLORS.success} />
-              <Text style={[styles.packageValue, { color: COLORS.success }]}>Hot & Fresh</Text>
-              <Text style={styles.packageLabel}>Temperature</Text>
-            </Card>
-            <Card style={styles.packageCard}>
-              <Ionicons name="shield-checkmark" size={24} color={COLORS.success} />
-              <Text style={[styles.packageValue, { color: COLORS.success }]}>Verified</Text>
-              <Text style={styles.packageLabel}>Quality Check</Text>
-            </Card>
-          </View>
-        </View>
-
-        {/* Action Button */}
-        <Button
-          title="Notify Driver"
-          icon="notifications"
-          iconPosition="left"
-          size="lg"
-          fullWidth
-          onPress={() => { }}
-          style={styles.notifyButton}
-        />
-      </ScrollView>
+      />
     </View>
   );
 }
@@ -158,148 +162,110 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
-  // Content spacing after header
-  contentAfterHeader: {
-    paddingTop: SPACING.md,
+  tabsContainer: {
+    paddingVertical: SPACING.sm,
+    backgroundColor: COLORS.background,
   },
-  scrollView: {
-    flex: 1,
+  tabsContent: {
+    paddingHorizontal: SPACING.base,
+    gap: SPACING.sm,
   },
-  content: {
+  tab: {
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.xs,
+    borderRadius: RADIUS.full,
+    backgroundColor: COLORS.backgroundSecondary,
+    borderWidth: 1,
+    borderColor: COLORS.borderDark, // Darker border
+  },
+  activeTab: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
+  },
+  tabText: {
+    fontSize: TYPOGRAPHY.fontSize.sm,
+    color: COLORS.textSecondary,
+    fontWeight: TYPOGRAPHY.fontWeight.medium,
+  },
+  activeTabText: {
+    color: COLORS.textLight,
+  },
+  listContent: {
     padding: SPACING.base,
-    paddingBottom: 120,
+    paddingBottom: 100, // Space for bottom bar
   },
-  // Status Card
-  statusCard: {
-    alignItems: 'center',
-    paddingVertical: SPACING.xl,
-    backgroundColor: COLORS.successLight,
-    marginBottom: SPACING.lg,
-  },
-  statusIcon: {
+  card: {
     marginBottom: SPACING.md,
   },
-  statusTitle: {
-    fontSize: TYPOGRAPHY.fontSize.lg,
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: SPACING.md,
+  },
+  idRow: {
+    flexDirection: 'row',
+    gap: SPACING.sm,
+    alignItems: 'center',
+  },
+  iconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  idText: {
+    fontSize: TYPOGRAPHY.fontSize.base,
     fontWeight: TYPOGRAPHY.fontWeight.bold,
-    color: COLORS.successDark,
-    marginBottom: SPACING.xs,
+    color: COLORS.textPrimary,
   },
-  statusSubtitle: {
+  timeText: {
+    fontSize: TYPOGRAPHY.fontSize.xs,
+    color: COLORS.textMuted,
+  },
+  destText: {
     fontSize: TYPOGRAPHY.fontSize.sm,
-    color: COLORS.success,
+    color: COLORS.textSecondary,
+    marginBottom: SPACING.md,
+    paddingLeft: 48 + SPACING.sm, // Align with text id
   },
-  // Section
-  section: {
-    marginBottom: SPACING.lg,
-  },
-  sectionHeader: {
+  footer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: SPACING.md,
+    paddingTop: SPACING.sm,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
   },
-  sectionTitle: {
-    fontSize: TYPOGRAPHY.fontSize.lg,
-    fontWeight: TYPOGRAPHY.fontWeight.semibold,
-    color: COLORS.textPrimary,
-    marginBottom: SPACING.md,
-  },
-  // Order Item
-  orderItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: SPACING.sm,
-  },
-  orderItemBorder: {
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-  },
-  orderItemIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: COLORS.primaryLight,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: SPACING.md,
-  },
-  orderItemInfo: {
-    flex: 1,
-  },
-  orderItemName: {
-    fontSize: TYPOGRAPHY.fontSize.base,
+  itemsText: {
+    fontSize: TYPOGRAPHY.fontSize.sm,
     fontWeight: TYPOGRAPHY.fontWeight.medium,
     color: COLORS.textPrimary,
   },
-  orderItemNote: {
-    fontSize: TYPOGRAPHY.fontSize.sm,
-    color: COLORS.textMuted,
-  },
-  orderItemQty: {
-    fontSize: TYPOGRAPHY.fontSize.base,
-    fontWeight: TYPOGRAPHY.fontWeight.semibold,
-    color: COLORS.primary,
-  },
-  // Info Row
-  infoRow: {
+  vehicleRow: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    paddingVertical: SPACING.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-  },
-  infoIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: COLORS.primaryLight,
     alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: SPACING.md,
+    gap: 4,
   },
-  infoContent: {
-    flex: 1,
-  },
-  infoLabel: {
-    fontSize: TYPOGRAPHY.fontSize.sm,
-    color: COLORS.textMuted,
-  },
-  infoValue: {
-    fontSize: TYPOGRAPHY.fontSize.base,
-    fontWeight: TYPOGRAPHY.fontWeight.medium,
-    color: COLORS.textPrimary,
-  },
-  infoSubvalue: {
-    fontSize: TYPOGRAPHY.fontSize.sm,
-    color: COLORS.textMuted,
-  },
-  // Package Grid
-  packageGrid: {
-    flexDirection: 'row',
-    gap: SPACING.md,
-    marginBottom: SPACING.md,
-  },
-  packageCard: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: SPACING.lg,
-    marginBottom: 0,
-  },
-  packageValue: {
-    fontSize: TYPOGRAPHY.fontSize.base,
-    fontWeight: TYPOGRAPHY.fontWeight.semibold,
-    color: COLORS.textPrimary,
-    marginTop: SPACING.sm,
-  },
-  packageLabel: {
+  vehicleText: {
     fontSize: TYPOGRAPHY.fontSize.xs,
     color: COLORS.textMuted,
-    marginTop: 2,
   },
-  // Button
-  notifyButton: {
-    marginTop: SPACING.md,
-    marginBottom: SPACING.lg,
+  assignText: {
+    fontSize: TYPOGRAPHY.fontSize.xs,
+    color: COLORS.primary,
+    fontWeight: TYPOGRAPHY.fontWeight.bold,
+  },
+  progressBarBg: {
+    height: 4,
+    backgroundColor: COLORS.border,
+    borderRadius: 2,
+    marginTop: SPACING.sm,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    backgroundColor: COLORS.success,
   },
 });

@@ -33,13 +33,13 @@ export default function ProductionPlanScreen() {
     <View style={styles.container}>
       <Header
         title="Production Plan"
-        subtitle="Central Kitchen"
-        rightElement={
-          <TouchableOpacity style={styles.datePickerButton}>
-            <Text style={styles.datePickerText}>{selectedDate}</Text>
-            <Ionicons name="calendar" size={16} color={COLORS.primary} />
-          </TouchableOpacity>
-        }
+      // subtitle="Central Kitchen"
+      // rightElement={
+      //   <TouchableOpacity style={styles.datePickerButton}>
+      //     <Text style={styles.datePickerText}>{selectedDate}</Text>
+      //     <Ionicons name="calendar" size={16} color={COLORS.primary} />
+      //   </TouchableOpacity>
+      // }
       />
 
       <ScrollView

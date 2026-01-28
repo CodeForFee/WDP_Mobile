@@ -149,17 +149,17 @@ const styles = StyleSheet.create({
     variantFilled: {
         backgroundColor: COLORS.backgroundSecondary,
         borderWidth: 1,
-        borderColor: 'transparent',
+        borderColor: COLORS.border, // Add border to filled input too
     },
     variantOutline: {
         backgroundColor: 'transparent',
         borderWidth: 1,
-        borderColor: COLORS.border,
+        borderColor: COLORS.borderDark, // Darker border for outline
     },
     variantPill: {
         backgroundColor: COLORS.backgroundSecondary,
         borderWidth: 1,
-        borderColor: 'transparent',
+        borderColor: COLORS.border,
         borderRadius: RADIUS.full,
     },
     // States

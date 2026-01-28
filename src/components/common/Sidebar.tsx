@@ -169,6 +169,13 @@ export function Sidebar({
     }, 300);
   };
 
+  const handleLogout = () => {
+    onClose();
+    setTimeout(() => {
+      router.replace('/(auth)/login');
+    }, 300);
+  };
+
   return (
     <Modal
       visible={visible}
@@ -237,7 +244,7 @@ export function Sidebar({
             <View style={styles.divider} />
 
             {/* Additional Actions */}
-            <TouchableOpacity style={styles.menuItem}>
+            <TouchableOpacity style={styles.menuItem} onPress={handleLogout}>
               <View style={styles.menuItemLeft}>
                 <View style={styles.menuIcon}>
                   <Ionicons name="log-out-outline" size={22} color={COLORS.error} />

@@ -1,8 +1,9 @@
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import { Card } from '@/src/components/common/Card';
 import { StatusBadge } from '@/src/components/common/StatusBadge';
+import { Header, Button } from '@/src/components/common';
+import { COLORS, TYPOGRAPHY, SPACING, RADIUS } from '@/src/constants/theme';
 
 // Mock Data
 const CONSOLIDATION_DETAILS = {
@@ -26,13 +27,22 @@ const CONSOLIDATION_DETAILS = {
       { id: 'ORD-201', store: 'Store #201', items: 10, total: '$400.00' },
       { id: 'ORD-202', store: 'Store #202', items: 5, total: '$200.00' },
     ]
+  },
+  'C-1003': {
+    id: 'C-1003',
+    region: 'West District',
+    date: '2023-10-25',
+    status: 'Processing',
+    orders: [
+      { id: 'ORD-301', store: 'Store #301', items: 15, total: '$600.00' },
+    ]
   }
 };
 
 export default function ConsolidationDetailScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
-  const group = CONSOLIDATION_DETAILS[id as string] || CONSOLIDATION_DETAILS['C-1001'];
+  const group = CONSOLIDATION_DETAILS['C-1001'];
 
   const handleConsolidate = () => {
     Alert.alert(
@@ -51,7 +61,7 @@ export default function ConsolidationDetailScreen() {
     );
   };
 
-  const renderOrder = ({ item }) => (
+  const renderOrder = ({ item }: any) => (
     <Card style={styles.orderCard}>
       <View style={styles.orderHeader}>
         <Text style={styles.storeName}>{item.store}</Text>
@@ -66,14 +76,11 @@ export default function ConsolidationDetailScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#333" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Consolidation {id}</Text>
-        <View style={{ width: 24 }} />
-      </View>
+      <Header
+        title={`Consolidation ${id || ''}`}
+        showBack
+        onBack={() => router.back()}
+      />
 
       <View style={styles.content}>
         {/* Summary Card */}
@@ -91,7 +98,7 @@ export default function ConsolidationDetailScreen() {
             <View style={styles.statDivider} />
             <View style={styles.statItem}>
               <Text style={styles.statValue}>
-                {group.orders.reduce((sum, ord) => sum + ord.items, 0)}
+                {group.orders.reduce((sum: number, ord: any) => sum + ord.items, 0)}
               </Text>
               <Text style={styles.statLabel}>Total Items</Text>
             </View>
@@ -105,12 +112,17 @@ export default function ConsolidationDetailScreen() {
           renderItem={renderOrder}
           keyExtractor={item => item.id}
           contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
         />
 
         {group.status === 'Pending' && (
-          <TouchableOpacity style={styles.consolidateButton} onPress={handleConsolidate}>
-            <Text style={styles.buttonText}>Confirm & Send to Kitchen</Text>
-          </TouchableOpacity>
+          <Button
+            title="Confirm & Send to Kitchen"
+            onPress={handleConsolidate}
+            fullWidth
+            size="lg"
+            style={styles.consolidateButton}
+          />
         )}
       </View>
     </View>
@@ -120,118 +132,93 @@ export default function ConsolidationDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 15,
-    backgroundColor: 'white',
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-    paddingTop: 50,
-  },
-  backButton: {
-    padding: 5,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
+    backgroundColor: COLORS.background,
   },
   content: {
     flex: 1,
-    padding: 20,
+    padding: SPACING.lg,
   },
   summaryCard: {
-    marginBottom: 20,
-    backgroundColor: 'white',
+    marginBottom: SPACING.lg,
+    backgroundColor: COLORS.cardBackground,
   },
   summaryHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 5,
+    marginBottom: SPACING.xs,
   },
   regionName: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333',
+    fontSize: TYPOGRAPHY.fontSize.lg,
+    fontWeight: TYPOGRAPHY.fontWeight.bold,
+    color: COLORS.textPrimary,
   },
   summaryDate: {
-    color: '#666',
-    marginBottom: 15,
+    color: COLORS.textSecondary,
+    fontSize: TYPOGRAPHY.fontSize.sm,
+    marginBottom: SPACING.md,
   },
   statsRow: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    paddingTop: 15,
+    paddingTop: SPACING.md,
     borderTopWidth: 1,
-    borderTopColor: '#eee',
+    borderTopColor: COLORS.border,
   },
   statItem: {
     alignItems: 'center',
   },
   statValue: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#007AFF',
+    fontSize: TYPOGRAPHY.fontSize.xl,
+    fontWeight: TYPOGRAPHY.fontWeight.bold,
+    color: COLORS.primary,
   },
   statLabel: {
-    fontSize: 12,
-    color: '#666',
+    fontSize: TYPOGRAPHY.fontSize.xs,
+    color: COLORS.textMuted,
   },
   statDivider: {
     width: 1,
     height: 30,
-    backgroundColor: '#eee',
+    backgroundColor: COLORS.border,
   },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    color: '#333',
+    fontSize: TYPOGRAPHY.fontSize.base,
+    fontWeight: TYPOGRAPHY.fontWeight.bold,
+    marginBottom: SPACING.md,
+    color: COLORS.textPrimary,
   },
   listContent: {
-    paddingBottom: 20,
+    paddingBottom: SPACING.lg,
   },
   orderCard: {
-    marginBottom: 10,
-    padding: 12,
+    marginBottom: SPACING.md,
+    padding: SPACING.md,
   },
   orderHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 5,
+    marginBottom: SPACING.xs,
   },
   storeName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
+    fontSize: TYPOGRAPHY.fontSize.base,
+    fontWeight: TYPOGRAPHY.fontWeight.semibold,
+    color: COLORS.textPrimary,
   },
   orderId: {
-    color: '#666',
+    color: COLORS.textSecondary,
+    fontSize: TYPOGRAPHY.fontSize.sm,
   },
   orderDetails: {
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
   orderMeta: {
-    color: '#555',
-    fontWeight: '500',
+    color: COLORS.textSecondary,
+    fontWeight: TYPOGRAPHY.fontWeight.medium,
   },
   consolidateButton: {
-    backgroundColor: '#34C759',
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  buttonText: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 16,
+    marginTop: SPACING.sm,
   },
 });

@@ -7,8 +7,8 @@ import {
     Image,
     ViewStyle,
     Platform,
-    SafeAreaView, // Import SafeAreaView
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, SIZES, TYPOGRAPHY, SHADOWS, RADIUS } from '../../constants/theme';
 
@@ -134,7 +134,7 @@ export function StoreHeader({
 
 const styles = StyleSheet.create({
     safeArea: {
-        paddingTop: Platform.OS === 'android' ? 30 : 0, // Add explicit padding for Android status bar
+        paddingTop: Platform.OS === 'android' ? 0 : 0, // Add explicit padding for Android status bar
     },
     container: {
         flexDirection: 'row',
