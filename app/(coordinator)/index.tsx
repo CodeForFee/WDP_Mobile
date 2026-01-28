@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS, SIZES } from '../../src/constants/theme';
 import { Card, StatusBadge, StoreHeader, Sidebar } from '../../src/components/common';
 
@@ -28,12 +29,13 @@ const activityTimeline = [
 
 export default function CoordinatorDashboard() {
   const [sidebarVisible, setSidebarVisible] = useState(false);
+  const router = useRouter();
 
   return (
     <View style={styles.container}>
       <StoreHeader
-        storeName="Store #420"
-        storeId="Daily Operations"
+        storeName="Kho trung tâm"
+        storeId="Supply Chain"
         style={styles.header}
         onMenuPress={() => setSidebarVisible(true)}
       />
