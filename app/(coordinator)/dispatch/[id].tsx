@@ -2,6 +2,8 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
+import { COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS } from '../../../src/constants/theme';
+import { Header, Button } from '../../../src/components/common';
 
 // Mock Data
 const DISPATCH_DETAILS = {
@@ -23,7 +25,7 @@ const AVAILABLE_VEHICLES = [
 export default function DispatchAssignmentScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
-  const task = DISPATCH_DETAILS[id as string] || DISPATCH_DETAILS['DP-001'];
+  const task = DISPATCH_DETAILS['DP-001'];
   const [selectedVehicle, setSelectedVehicle] = useState<string | null>(null);
 
   const handleAssign = () => {
@@ -48,7 +50,7 @@ export default function DispatchAssignmentScreen() {
     );
   };
 
-  const renderVehicle = ({ item }) => {
+  const renderVehicle = ({ item }: any) => {
     const isSelected = selectedVehicle === item.id;
     const isAvailable = item.status === 'Available';
 
@@ -67,7 +69,7 @@ export default function DispatchAssignmentScreen() {
             <Ionicons
               name={item.name.includes('Truck') ? 'bus' : 'car'}
               size={24}
-              color={isSelected ? '#007AFF' : '#555'}
+              color={isSelected ? COLORS.primary : '#555'}
             />
             <Text style={[styles.vehicleName, isSelected && styles.selectedText]}>{item.name}</Text>
           </View>
@@ -88,7 +90,7 @@ export default function DispatchAssignmentScreen() {
 
         {isSelected && (
           <View style={styles.checkIcon}>
-            <Ionicons name="checkmark-circle" size={24} color="#007AFF" />
+            <Ionicons name="checkmark-circle" size={24} color={COLORS.primary} />
           </View>
         )}
       </TouchableOpacity>
@@ -97,14 +99,11 @@ export default function DispatchAssignmentScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#333" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Assign Vehicle</Text>
-        <View style={{ width: 24 }} />
-      </View>
+      <Header
+        title="Assign Vehicle"
+        showBack
+        onBack={() => router.back()}
+      />
 
       <View style={styles.content}>
         {/* Task Summary */}
@@ -128,13 +127,14 @@ export default function DispatchAssignmentScreen() {
           showsVerticalScrollIndicator={false}
         />
 
-        <TouchableOpacity
-          style={[styles.confirmButton, !selectedVehicle && styles.disabledButton]}
+        <Button
+          title="Confirm Assignment"
           onPress={handleAssign}
           disabled={!selectedVehicle}
-        >
-          <Text style={styles.confirmButtonText}>Confirm Assignment</Text>
-        </TouchableOpacity>
+          fullWidth
+          size="lg"
+          style={styles.confirmButton}
+        />
       </View>
     </View>
   );
@@ -143,138 +143,116 @@ export default function DispatchAssignmentScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 15,
-    backgroundColor: 'white',
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-    paddingTop: 50,
-  },
-  backButton: {
-    padding: 5,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
+    backgroundColor: COLORS.background,
   },
   content: {
     flex: 1,
-    padding: 20,
+    padding: SPACING.lg,
   },
   summaryCard: {
-    backgroundColor: '#343a40',
-    borderRadius: 10,
-    padding: 20,
-    marginBottom: 20,
+    backgroundColor: '#343a40', // Keep dark for contrast or use primaryDark? user showed dark card.
+    borderRadius: RADIUS.md,
+    padding: SPACING.lg,
+    marginBottom: SPACING.lg,
   },
   summaryTitle: {
     color: 'white',
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 5,
+    fontSize: TYPOGRAPHY.fontSize.lg,
+    fontWeight: TYPOGRAPHY.fontWeight.bold,
+    marginBottom: SPACING.xs,
   },
   summaryDest: {
     color: '#ced4da',
-    fontSize: 14,
-    marginBottom: 10,
+    fontSize: TYPOGRAPHY.fontSize.sm,
+    marginBottom: SPACING.md,
   },
   summaryMeta: {
     flexDirection: 'row',
-    gap: 10,
+    gap: SPACING.md,
   },
   summaryText: {
     color: '#adb5bd',
-    fontWeight: '600',
+    fontWeight: TYPOGRAPHY.fontWeight.semibold,
   },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 15,
-    color: '#333',
+    fontSize: TYPOGRAPHY.fontSize.base,
+    fontWeight: TYPOGRAPHY.fontWeight.bold,
+    marginBottom: SPACING.md,
+    color: COLORS.textPrimary,
   },
   listContent: {
-    paddingBottom: 20,
+    paddingBottom: SPACING.lg,
   },
   vehicleCard: {
-    backgroundColor: 'white',
-    borderRadius: 12,
-    padding: 15,
-    marginBottom: 12,
+    backgroundColor: COLORS.cardBackground,
+    borderRadius: RADIUS.md,
+    padding: SPACING.md,
+    marginBottom: SPACING.md,
     borderWidth: 2,
     borderColor: 'transparent',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
+    ...SHADOWS.sm,
   },
   selectedCard: {
-    borderColor: '#007AFF',
-    backgroundColor: '#f0f7ff',
+    borderColor: COLORS.primary,
+    backgroundColor: COLORS.backgroundSecondary,
   },
   disabledCard: {
     opacity: 0.6,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: COLORS.background,
   },
   vehicleHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: SPACING.sm,
   },
   vehicleIconRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: SPACING.sm,
   },
   vehicleName: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
+    fontSize: TYPOGRAPHY.fontSize.base,
+    fontWeight: TYPOGRAPHY.fontWeight.bold,
+    color: COLORS.textPrimary,
   },
   selectedText: {
-    color: '#007AFF',
+    color: COLORS.primary,
   },
   statusBadge: {
-    paddingHorizontal: 8,
+    paddingHorizontal: SPACING.sm,
     paddingVertical: 4,
-    borderRadius: 6,
+    borderRadius: RADIUS.xs,
   },
-  bgAvailable: { backgroundColor: '#d4edda' },
-  bgBusy: { backgroundColor: '#f8d7da' },
+  bgAvailable: { backgroundColor: COLORS.successLight },
+  bgBusy: { backgroundColor: COLORS.errorLight },
   statusText: {
-    fontSize: 10,
-    fontWeight: 'bold',
-    color: '#333',
+    fontSize: TYPOGRAPHY.fontSize.xs,
+    fontWeight: TYPOGRAPHY.fontWeight.bold,
+    color: COLORS.textPrimary,
   },
   driverRow: {
     flexDirection: 'row',
     marginBottom: 4,
   },
   driverLabel: {
-    color: '#666',
+    color: COLORS.textSecondary,
     width: 70,
   },
   driverName: {
-    fontWeight: '500',
-    color: '#333',
+    fontWeight: TYPOGRAPHY.fontWeight.medium,
+    color: COLORS.textPrimary,
   },
   capacityRow: {
     flexDirection: 'row',
   },
   capacityLabel: {
-    color: '#666',
+    color: COLORS.textSecondary,
     width: 70,
   },
   capacityValue: {
-    fontWeight: '500',
-    color: '#333',
+    fontWeight: TYPOGRAPHY.fontWeight.medium,
+    color: COLORS.textPrimary,
   },
   checkIcon: {
     position: 'absolute',
@@ -282,18 +260,6 @@ const styles = StyleSheet.create({
     right: 15,
   },
   confirmButton: {
-    backgroundColor: '#007AFF',
-    padding: 16,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  disabledButton: {
-    backgroundColor: '#ccc',
-  },
-  confirmButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
+    marginTop: SPACING.sm,
+  }
 });
