@@ -6,9 +6,11 @@ import {
     TouchableOpacity,
     Image,
     ViewStyle,
+    Keyboard, // Add other used imports if any, or keep what's needed
     Platform,
-    SafeAreaView, // Import SafeAreaView
+    // SafeAreaView, // Remove this
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, SIZES, TYPOGRAPHY, SHADOWS, RADIUS } from '../../constants/theme';
 
