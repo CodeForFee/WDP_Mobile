@@ -281,37 +281,39 @@ export default function KitchenInventoryScreen() {
       </View>
 
       {/* Filter Tabs */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.tabsScroll}
-        contentContainerStyle={styles.tabsContainer}
-      >
-        {tabs.map((tab) => (
-          <TouchableOpacity
-            key={tab}
-            style={[
-              styles.tab,
-              activeTab === tab && styles.tabActive,
-            ]}
-            onPress={() => setActiveTab(tab)}
-          >
-            <Text
+      <View style={styles.filterSection}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.tabsScroll}
+          contentContainerStyle={styles.tabsContainer}
+        >
+          {tabs.map((tab) => (
+            <TouchableOpacity
+              key={tab}
               style={[
-                styles.tabText,
-                activeTab === tab && styles.tabTextActive,
+                styles.tab,
+                activeTab === tab && styles.tabActive,
               ]}
+              onPress={() => setActiveTab(tab)}
             >
-              {tab}
-            </Text>
-            {tab === 'Sắp hết hạn' && expiringCount > 0 && (
-              <View style={styles.tabBadge}>
-                <Text style={styles.tabBadgeText}>{expiringCount}</Text>
-              </View>
-            )}
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+              <Text
+                style={[
+                  styles.tabText,
+                  activeTab === tab && styles.tabTextActive,
+                ]}
+              >
+                {tab}
+              </Text>
+              {tab === 'Sắp hết hạn' && expiringCount > 0 && (
+                <View style={styles.tabBadge}>
+                  <Text style={styles.tabBadgeText}>{expiringCount}</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
 
       {/* Inventory List */}
       <FlatList
@@ -428,34 +430,51 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  // Filter Section
+  filterSection: {
+    marginBottom: SPACING.sm,
+  },
   // Tabs
   tabsScroll: {
-    maxHeight: 48,
+    // Removed maxHeight to prevent clipping
+    flexGrow: 0,
   },
   tabsContainer: {
     paddingHorizontal: SPACING.base,
     paddingVertical: SPACING.sm,
     gap: SPACING.sm,
+    alignItems: 'center', // Center vertically to handle different heights
   },
   tab: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.xl, // Wider horizontal padding
+    paddingVertical: 14, // Increased vertical padding for larger touch target
     borderRadius: RADIUS.full,
-    backgroundColor: COLORS.backgroundSecondary,
-    gap: SPACING.xs,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    marginRight: SPACING.xs,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    minHeight: 48, // Taller minimum height
   },
   tabActive: {
     backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
+    elevation: 4,
   },
   tabText: {
     fontSize: TYPOGRAPHY.fontSize.sm,
-    color: COLORS.textSecondary,
-    fontWeight: TYPOGRAPHY.fontWeight.medium,
+    color: '#333333', // Explicit dark gray
+    fontWeight: '600',
   },
   tabTextActive: {
-    color: COLORS.textLight,
+    color: '#000000', // Explicit black
+    fontWeight: 'bold',
   },
   tabBadge: {
     backgroundColor: COLORS.error,
