@@ -317,6 +317,8 @@ const styles = StyleSheet.create({
     padding: SPACING.lg,
     alignItems: 'center',
     ...SHADOWS.sm,
+    borderWidth: 1,
+    borderColor: COLORS.borderDark, // Add border for visibility
   },
   actionIcon: {
     width: 48,

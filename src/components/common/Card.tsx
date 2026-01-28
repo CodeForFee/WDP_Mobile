@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.md,
     ...SHADOWS.sm, // Softer default shadow
     borderWidth: 1, // Add light border
-    borderColor: COLORS.border,
+    borderColor: COLORS.borderDark, // Darker border for visibility
   },
   elevated: {
     ...SHADOWS.md,

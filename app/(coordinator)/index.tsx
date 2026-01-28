@@ -257,6 +257,8 @@ const styles = StyleSheet.create({
     padding: SPACING.md,
     alignItems: 'center',
     ...SHADOWS.sm,
+    borderWidth: 1,
+    borderColor: COLORS.borderDark,
   },
   quickLogIcon: {
     width: 44,
@@ -300,6 +302,8 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.md,
     padding: SPACING.md,
     ...SHADOWS.sm,
+    borderWidth: 1,
+    borderColor: COLORS.borderDark,
   },
   activityHeader: {
     flexDirection: 'row',

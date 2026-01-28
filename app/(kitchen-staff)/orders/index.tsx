@@ -201,6 +201,8 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.sm,
     borderRadius: RADIUS.full,
     backgroundColor: COLORS.backgroundSecondary,
+    borderWidth: 1,
+    borderColor: COLORS.borderDark, // Add dark border
   },
   tabActive: {
     backgroundColor: COLORS.primary,

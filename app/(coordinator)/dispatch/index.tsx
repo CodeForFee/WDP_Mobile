@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.full,
     backgroundColor: COLORS.backgroundSecondary,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: COLORS.borderDark, // Darker border
   },
   activeTab: {
     backgroundColor: COLORS.primary,
