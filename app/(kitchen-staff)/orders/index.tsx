@@ -53,12 +53,12 @@ export default function KitchenOrdersScreen() {
     <View style={styles.container}>
       <Header
         title="Central Kitchen"
-        subtitle="Incoming Orders"
-        rightElement={
-          <TouchableOpacity>
-            <Ionicons name="notifications" size={24} color={COLORS.textPrimary} />
-          </TouchableOpacity>
-        }
+      // subtitle="Incoming Orders"
+      // rightElement={
+      //   <TouchableOpacity>
+      //     <Ionicons name="notifications" size={24} color={COLORS.textPrimary} />
+      //   </TouchableOpacity>
+      // }
       />
 
       {/* Stats Row */}

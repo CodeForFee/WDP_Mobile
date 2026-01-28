@@ -77,7 +77,7 @@ export default function KitchenOrderDetailScreen() {
           <View style={styles.infoHeader}>
             <Text style={styles.storeName}>{order.store}</Text>
             <View style={[styles.statusBadge,
-              status === 'Pending' ? styles.statusPending :
+            status === 'Pending' ? styles.statusPending :
               status === 'Processing' ? styles.statusProcessing : styles.statusReady
             ]}>
               <Text style={styles.statusText}>{status}</Text>

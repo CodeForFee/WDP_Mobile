@@ -231,7 +231,9 @@ export default function KitchenInventoryScreen() {
     <View style={styles.container}>
       <Header
         title="Quản lý Nguyên liệu"
-        subtitle="Bếp trung tâm"
+        // subtitle="Bếp trung tâm"
+        showBack
+        onBack={() => router.back()}
         rightElement={
           <TouchableOpacity style={styles.onlineIndicator}>
             <View style={styles.onlineDot} />
@@ -606,7 +608,7 @@ const styles = StyleSheet.create({
   emptyContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: SPACING.xxl,
+    paddingVertical: SPACING.sm,
   },
   emptyText: {
     fontSize: TYPOGRAPHY.fontSize.base,
@@ -616,7 +618,7 @@ const styles = StyleSheet.create({
   // FAB
   fab: {
     position: 'absolute',
-    bottom: 100,
+    bottom: 30,
     right: SPACING.base,
     width: 56,
     height: 56,
