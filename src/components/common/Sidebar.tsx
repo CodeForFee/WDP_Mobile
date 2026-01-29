@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { use } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,8 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS } from '../../constants/theme';
+import { useAuthContext } from '@/lib/authContext';
+import { useSessionStore } from '@/stores/storeSession';
 
 interface SidebarItem {
   id: string;
@@ -142,7 +144,8 @@ export function Sidebar({
   const router = useRouter();
   // Start from right side (positive value)
   const slideAnim = React.useRef(new Animated.Value(300)).current;
-
+  const { logout } = useAuthContext();
+  const session = useSessionStore()
   React.useEffect(() => {
     if (visible) {
       Animated.timing(slideAnim, {
@@ -170,10 +173,8 @@ export function Sidebar({
   };
 
   const handleLogout = () => {
-    onClose();
-    setTimeout(() => {
-      router.replace('/(auth)/login');
-    }, 300);
+      logout();
+      onClose();
   };
 
   return (
@@ -207,9 +208,9 @@ export function Sidebar({
                 <Ionicons name="person" size={32} color={COLORS.primary} />
               </View>
               <View style={styles.userInfo}>
-                <Text style={styles.userName}>{userName}</Text>
-                <Text style={styles.userRole}>{roleLabel}</Text>
-                <Text style={styles.storeInfo}>{userInfo}</Text>
+                <Text style={styles.userName}>{session.user ? session.user.email : userName}</Text>
+                <Text style={styles.userRole}>{session.user ? session.user.role : roleLabel}</Text>
+                <Text style={styles.storeInfo}>{session.user ? session.user.storeId : userInfo}</Text>
               </View>
             </View>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
