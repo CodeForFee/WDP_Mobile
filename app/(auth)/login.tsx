@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
   Image,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, TYPOGRAPHY, SPACING, RADIUS, SIZES } from '../../src/constants/theme';
@@ -99,9 +99,9 @@ export default function LoginScreen() {
               </View>
               <Text style={styles.rememberText}>Remember me</Text>
             </TouchableOpacity>
-            <TouchableOpacity>
+            <Link href="/(auth)/forgot-password">
               <Text style={styles.forgotText}>Forgot Password?</Text>
-            </TouchableOpacity>
+            </Link>
           </View>
 
           <Button
