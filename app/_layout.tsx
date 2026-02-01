@@ -2,7 +2,7 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 import { AuthProvider, useAuthContext } from '@/lib/authContext';
-import { Loading } from '@/src/components/common';
+import { Loading } from '@/components/common';
 import { useEffect } from 'react';
 
 export const unstable_settings = {
@@ -32,7 +32,7 @@ function RootLayoutNav() {
   if (isLoading) {
     return <Loading />;
   }
-  
+
 
   return (
     <>

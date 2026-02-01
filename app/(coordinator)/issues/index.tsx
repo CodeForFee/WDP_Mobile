@@ -1,9 +1,9 @@
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Card } from '@/src/components/common/Card';
-import { StatusBadge } from '@/src/components/common/StatusBadge';
-import { Header } from '@/src/components/common/Header';
-import { COLORS, TYPOGRAPHY, SPACING, RADIUS } from '@/src/constants/theme';
+import { Card } from '@/components/common/Card';
+import { StatusBadge } from '@/components/common/StatusBadge';
+import { Header } from '@/components/common/Header';
+import { COLORS, TYPOGRAPHY, SPACING, RADIUS } from '@/constants/theme';
 
 const ISSUES = [
   { id: 'ISS-001', type: 'Missing Items', orderId: 'ORD-1023', reportedBy: 'Store #123', status: 'Open', priority: 'High', date: '2023-10-25' },

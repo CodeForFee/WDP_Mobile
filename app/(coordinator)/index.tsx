@@ -8,8 +8,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS, SIZES } from '../../src/constants/theme';
-import { Card, StatusBadge, StoreHeader, Sidebar } from '../../src/components/common';
+import { COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS, SIZES } from '@/constants/theme';
+import { Card, StatusBadge, StoreHeader, Sidebar } from '@/components/common';
 
 const quickLogItems = [
   { id: '1', icon: 'cube', label: 'Batch Chk', color: COLORS.primary },

@@ -1,9 +1,9 @@
 import { View, Text, StyleSheet, FlatList, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Card } from '@/src/components/common/Card';
-import { StatusBadge } from '@/src/components/common/StatusBadge';
-import { Header, Button } from '@/src/components/common';
-import { COLORS, TYPOGRAPHY, SPACING, RADIUS } from '@/src/constants/theme';
+import { Card } from '@/components/common/Card';
+import { StatusBadge } from '@/components/common/StatusBadge';
+import { Header, Button } from '@/components/common';
+import { COLORS, TYPOGRAPHY, SPACING, RADIUS } from '@/constants/theme';
 
 // Mock Data
 const CONSOLIDATION_DETAILS = {

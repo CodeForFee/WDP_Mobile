@@ -12,8 +12,8 @@ import {
 import { Link, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, TYPOGRAPHY, SPACING, RADIUS, SIZES } from '../../src/constants/theme';
-import { Input, Button } from '../../src/components/common';
+import { COLORS, TYPOGRAPHY, SPACING, RADIUS, SIZES } from '@/constants/theme';
+import { Input, Button } from '@/components/common';
 import { useAuthContext } from '@/lib/authContext';
 import { LoginInput } from '@/schemas/authSchema';
 
@@ -25,12 +25,12 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('pass123456789');
   const [loading, setLoading] = useState(false);
   const [showRoleSelector, setShowRoleSelector] = useState(false);
-  const {login} = useAuthContext();
-  const handleLogin = async ({ email, password }:LoginInput) => {
-     // call api
+  const { login } = useAuthContext();
+  const handleLogin = async ({ email, password }: LoginInput) => {
+    // call api
     setLoading(true);
     try {
-       login({ email, password });
+      login({ email, password });
     } catch (error) {
       console.error('Login failed:', error);
     } finally {
@@ -117,7 +117,7 @@ export default function LoginScreen() {
             size="lg"
             style={styles.signInButton}
           />
-         
+
 
           {/* Social Login */}
           <View style={styles.dividerContainer}>
@@ -127,7 +127,7 @@ export default function LoginScreen() {
           </View>
 
           <View style={styles.socialRow}>
-         
+
             <TouchableOpacity style={styles.socialButton}>
               <Ionicons name="logo-google" size={24} color={COLORS.textPrimary} />
             </TouchableOpacity>

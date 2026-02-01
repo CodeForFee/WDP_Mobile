@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { COLORS, TYPOGRAPHY, SPACING } from '../../../src/constants/theme';
-import { Header } from '../../../src/components/common';
+import { COLORS, TYPOGRAPHY, SPACING } from '@/constants/theme';
+import { Header } from '@/components/common';
 
 export default function InventoryDetailScreen() {
     const { id } = useLocalSearchParams();

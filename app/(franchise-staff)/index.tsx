@@ -7,8 +7,8 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS, SIZES } from '../../src/constants/theme';
-import { Card, StatusBadge, StoreHeader, Sidebar } from '../../src/components/common';
+import { COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS } from '@/constants/theme';
+import { Card, StatusBadge, StoreHeader, Sidebar } from '@/components/common';
 import { useSessionStore } from '@/stores/storeSession';
 
 export default function FranchiseDashboard() {

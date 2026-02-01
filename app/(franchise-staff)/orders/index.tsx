@@ -9,8 +9,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS } from '../../../src/constants/theme';
-import { Card, StatusBadge, Header, Button } from '../../../src/components/common';
+import { COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS } from '@/constants/theme';
+import { Card, StatusBadge, Header, Button } from '@/components/common';
 
 // Mock data for supply orders from Central Kitchen
 const mockSupplyOrders = [

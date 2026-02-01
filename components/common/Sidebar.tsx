@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS } from '../../constants/theme';
+import { COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS } from '@/constants/theme';
 import { useAuthContext } from '@/lib/authContext';
 import { useSessionStore } from '@/stores/storeSession';
 
@@ -173,8 +173,8 @@ export function Sidebar({
   };
 
   const handleLogout = () => {
-      logout();
-      onClose();
+    logout();
+    onClose();
   };
 
   return (

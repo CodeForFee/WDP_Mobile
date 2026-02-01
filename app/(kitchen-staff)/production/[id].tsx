@@ -2,8 +2,8 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, TextInput 
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { Card } from '@/src/components/common/Card';
-import { StatusBadge } from '@/src/components/common/StatusBadge';
+import { Card } from '@/components/common/Card';
+import { StatusBadge } from '@/components/common/StatusBadge';
 
 // Mock Data
 const PRODUCTION_DETAILS = {

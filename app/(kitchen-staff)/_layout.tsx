@@ -3,7 +3,7 @@ import { Tabs, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { View, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import Animated, { useAnimatedStyle, withTiming, Easing } from 'react-native-reanimated';
-import { COLORS, SHADOWS } from '../../src/constants/theme';
+import { COLORS, SHADOWS } from '@/constants/theme';
 
 const { width } = Dimensions.get('window');
 const TAB_BAR_WIDTH = width - 40;

@@ -1,5 +1,5 @@
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
-import { theme } from '@/src/constants/theme';
+import { theme } from '@/constants/theme';
 
 export const Loading = () => {
   return (

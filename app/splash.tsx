@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, TYPOGRAPHY, SPACING } from '../src/constants/theme';
+import { COLORS, TYPOGRAPHY, SPACING } from '@/constants/theme';
 
 export default function SplashScreen() {
     const router = useRouter();

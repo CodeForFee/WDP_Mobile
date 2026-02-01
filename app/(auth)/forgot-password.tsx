@@ -3,7 +3,7 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { ResetPasswordInput } from '@/schemas/authSchema';
-import { COLORS, SPACING, TYPOGRAPHY, SIZES } from '@/src/constants/theme';
+import { COLORS, SPACING, TYPOGRAPHY, SIZES } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function ForgotPasswordScreen() {

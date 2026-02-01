@@ -2,8 +2,8 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS } from '../../../src/constants/theme';
-import { Header, Button } from '../../../src/components/common';
+import { COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS } from '@/constants/theme';
+import { Header, Button } from '@/components/common';
 
 // Mock Data
 const DISPATCH_DETAILS = {
