@@ -4,4 +4,5 @@ export { StatusBadge, getStatusType } from './StatusBadge';
 export { Button } from './Button';
 export { Input } from './Input';
 export { Header, StoreHeader } from './Header';
+export { Loading } from './Loading';
 export { Sidebar } from './Sidebar';

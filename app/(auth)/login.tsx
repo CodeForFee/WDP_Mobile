@@ -7,31 +7,35 @@ import {
   Platform,
   ScrollView,
   TouchableOpacity,
-  Image,
+
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, TYPOGRAPHY, SPACING, RADIUS, SIZES } from '../../src/constants/theme';
-import { Input, Button } from '../../src/components/common';
+import { COLORS, TYPOGRAPHY, SPACING, RADIUS, SIZES } from '@/constants/theme';
+import { Input, Button } from '@/components/common';
+import { useAuthContext } from '@/lib/authContext';
+import { LoginInput } from '@/schemas/authSchema';
+
 
 export default function LoginScreen() {
   const router = useRouter();
   // Pre-fill with a test account for ease of use
-  const [email, setEmail] = useState('store@crispy.pro');
-  const [password, setPassword] = useState('password123');
+  const [email, setEmail] = useState('admin@gmail.com');
+  const [password, setPassword] = useState('pass123456789');
   const [loading, setLoading] = useState(false);
   const [showRoleSelector, setShowRoleSelector] = useState(false);
-
-  const handleLogin = async () => {
+  const { login } = useAuthContext();
+  const handleLogin = async ({ email, password }: LoginInput) => {
+    // call api
     setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      login({ email, password });
+    } catch (error) {
+      console.error('Login failed:', error);
+    } finally {
       setLoading(false);
-      // For demo purposes, we'll show a simple selector or just route based on email
-      // But user requested "no dev mode", so let's make it smart.
-      setShowRoleSelector(true);
-    }, 1500);
+    }
   };
 
   const selectRole = (role: string) => {
@@ -40,12 +44,13 @@ export default function LoginScreen() {
       case 'franchise':
         router.replace('/(franchise-staff)');
         break;
-      case 'kitchen':
-        router.replace('/(kitchen-staff)');
-        break;
-      case 'coordinator':
-        router.replace('/(coordinator)');
-        break;
+      // case 'kitchen':
+      //   router.replace('/(kitchen-staff)');
+      //   break;
+      // case 'coordinator':
+      //   router.replace('/(coordinator)');
+      //   break;
+
     }
   };
 
@@ -99,19 +104,20 @@ export default function LoginScreen() {
               </View>
               <Text style={styles.rememberText}>Remember me</Text>
             </TouchableOpacity>
-            <TouchableOpacity>
+            <Link href="/(auth)/forgot-password">
               <Text style={styles.forgotText}>Forgot Password?</Text>
-            </TouchableOpacity>
+            </Link>
           </View>
 
           <Button
             title="Sign In"
-            onPress={handleLogin}
+            onPress={() => handleLogin({ email, password })}
             loading={loading}
             fullWidth
             size="lg"
             style={styles.signInButton}
           />
+
 
           {/* Social Login */}
           <View style={styles.dividerContainer}>
@@ -121,6 +127,7 @@ export default function LoginScreen() {
           </View>
 
           <View style={styles.socialRow}>
+
             <TouchableOpacity style={styles.socialButton}>
               <Ionicons name="logo-google" size={24} color={COLORS.textPrimary} />
             </TouchableOpacity>

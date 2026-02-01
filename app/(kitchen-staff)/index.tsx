@@ -7,8 +7,8 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS } from '../../src/constants/theme';
-import { Card, StatusBadge, StoreHeader, Sidebar } from '../../src/components/common';
+import { COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS } from '@/constants/theme';
+import { Card, StatusBadge, StoreHeader, Sidebar } from '@/components/common';
 
 const activeBatches = [
   { id: 'B001', name: 'Spicy Wings', count: 24, time: '3:24 AM', status: 'Cooking' },

@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, ViewStyle, TextStyle } from 'react-native';
-import { COLORS, RADIUS, SPACING, TYPOGRAPHY } from '../../constants/theme';
+import { COLORS, RADIUS, SPACING, TYPOGRAPHY } from '@/constants/theme';
 
 type StatusType =
   | 'completed'
