@@ -7,17 +7,18 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS, SIZES } from '../../src/constants/theme';
-import { Card, StatusBadge, StoreHeader, Sidebar } from '../../src/components/common';
+import { COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS } from '@/constants/theme';
+import { Card, StatusBadge, StoreHeader, Sidebar } from '@/components/common';
+import { useSessionStore } from '@/stores/storeSession';
 
 export default function FranchiseDashboard() {
   const [sidebarVisible, setSidebarVisible] = useState(false);
-
+  const session = useSessionStore();
   return (
     <View style={styles.container}>
       {/* Header */}
       <StoreHeader
-        storeName="Store #247"
+        storeName={session.user?.email || 'Franchise Staff'}
         storeId="Downtown Plaza"
         style={styles.header}
         onMenuPress={() => setSidebarVisible(true)}

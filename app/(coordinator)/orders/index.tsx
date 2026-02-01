@@ -1,9 +1,9 @@
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Card } from '@/src/components/common/Card';
-import { StatusBadge } from '@/src/components/common/StatusBadge';
-import { Header } from '@/src/components/common/Header';
-import { COLORS, TYPOGRAPHY, SPACING, RADIUS } from '@/src/constants/theme';
+import { Card } from '@/components/common/Card';
+import { StatusBadge } from '@/components/common/StatusBadge';
+import { Header } from '@/components/common/Header';
+import { COLORS, TYPOGRAPHY, SPACING, RADIUS } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 
 // Mock data

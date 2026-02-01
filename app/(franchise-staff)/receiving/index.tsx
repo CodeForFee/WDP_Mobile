@@ -8,8 +8,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS } from '../../../src/constants/theme';
-import { Card, StatusBadge, Button, Header } from '../../../src/components/common';
+import { COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS } from '@/constants/theme';
+import { Card, StatusBadge, Button, Header } from '@/components/common';
 
 const checklistItems = [
   { id: '1', title: 'Temperature Check', desc: 'Verify all frozen items are below 0°F', icon: 'thermometer', status: 'pending' },

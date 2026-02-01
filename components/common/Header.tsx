@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { use } from 'react';
 import {
     View,
     Text,
@@ -10,7 +10,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, SPACING, SIZES, TYPOGRAPHY, SHADOWS, RADIUS } from '../../constants/theme';
+import { COLORS, SPACING, SIZES, TYPOGRAPHY, SHADOWS, RADIUS } from '@/constants/theme';
+
 
 interface HeaderProps {
     title?: string;
@@ -39,7 +40,6 @@ export function Header({
     variant = 'default',
     style,
 }: HeaderProps) {
-
     return (
         <SafeAreaView style={[
             styles.safeArea,

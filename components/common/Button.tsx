@@ -9,7 +9,7 @@ import {
     View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, RADIUS, SHADOWS, SPACING, SIZES, TYPOGRAPHY } from '../../constants/theme';
+import { COLORS, RADIUS, SHADOWS, SPACING, SIZES, TYPOGRAPHY } from '@/constants/theme';
 
 interface ButtonProps {
     title?: string;

@@ -10,8 +10,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS } from '../../../src/constants/theme';
-import { Card, Button, Header } from '../../../src/components/common';
+import { COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS } from '@/constants/theme';
+import { Card, Button, Header } from '@/components/common';
 
 // Categories for ingredients/semi-finished products from Central Kitchen
 const categories = ['Tất cả', 'Nguyên liệu', 'Bán thành phẩm', 'Đồ uống', 'Đóng gói'];
