@@ -83,10 +83,10 @@ api.interceptors.response.use(
         session.logout();
 
         return Promise.reject(
-          new HttpError(HttpErrorCode.UNAUTHORIZED, {
+          new HttpError({
             statusCode: HttpErrorCode.UNAUTHORIZED,
-            message: "Phiên đăng nhập đã hết hạn",
-            error: "Unauthorized",
+            message: "Phiên đăng nhập hết hạn",
+            errors: [],
             timestamp: new Date().toISOString(),
             path: originalRequest.url ?? "",
           })
@@ -124,12 +124,11 @@ api.interceptors.response.use(
       } catch (refreshError) {
         processQueue(refreshError, null);
         session.logout();
-
         return Promise.reject(
-          new HttpError(HttpErrorCode.UNAUTHORIZED, {
+          new HttpError({
             statusCode: HttpErrorCode.UNAUTHORIZED,
-            message: "Phiên đăng nhập đã hết hạn",
-            error: "Unauthorized",
+            message: "Không thể làm mới phiên đăng nhập",
+            errors: [],
             timestamp: new Date().toISOString(),
             path: originalRequest.url ?? "",
           })
@@ -142,31 +141,25 @@ api.interceptors.response.use(
     /* ========== BACKEND ERROR ========== */
 
     if (error.response?.data) {
-      const data = error.response.data;
+      const errorData = error.response.data;
 
-     
-      if (
-        (data.statusCode === HttpErrorCode.BAD_REQUEST || data.statusCode === HttpErrorCode.UNPROCESSABLE_ENTITY) &&
-        "errors" in data &&
-        Array.isArray((data as any).errors)
-      ) {
-        return Promise.reject(new EntityError(data));
+      // Nếu có errors array và có items => EntityError (validation)
+      if (errorData.errors && errorData.errors.length > 0) {
+        return Promise.reject(new EntityError(errorData));
       }
 
-
-      return Promise.reject(
-        new HttpError(data.statusCode, data)
-      );
+      // Nếu errors array rỗng hoặc không có => HttpError (lỗi khác)
+      return Promise.reject(new HttpError(errorData));
     }
 
     /* ========== NETWORK ERROR ========== */
 
     if (error.request) {
       return Promise.reject(
-        new HttpError(HttpErrorCode.INTERNAL_SERVER_ERROR, {
+        new HttpError({
           statusCode: HttpErrorCode.INTERNAL_SERVER_ERROR,
           message: "Không thể kết nối server",
-          error: "Network Error",
+          errors: [],
           timestamp: new Date().toISOString(),
           path: originalRequest.url ?? "",
         })
@@ -176,10 +169,10 @@ api.interceptors.response.use(
     /* ========== UNKNOWN ERROR ========== */
 
     return Promise.reject(
-      new HttpError(HttpErrorCode.INTERNAL_SERVER_ERROR, {
+      new HttpError({
         statusCode: HttpErrorCode.INTERNAL_SERVER_ERROR,
         message: error.message || "Có lỗi xảy ra",
-        error: "Unknown Error",
+        errors: [],
         timestamp: new Date().toISOString(),
         path: originalRequest.url ?? "",
       })
