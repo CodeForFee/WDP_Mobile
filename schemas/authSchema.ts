@@ -1,4 +1,4 @@
-import { codec, email, z } from "zod";
+import { z } from "zod";
 
 export const authSchema = z.object({
   email: z.email("Email không hợp lệ"),
@@ -15,12 +15,15 @@ export const emailSchema = z.object({
 export const resetPasswordSchema = z
   .object({
     email: z.email("Email không hợp lệ"),
-    code: z.string().length(6, "Mã xác nhận gồm 6 ký tự"),
+    code: z
+    .string()
+    .length(6, "Code phải có đúng 6 ký tự số")
+    .regex(/^\d+$/, "Code chỉ được chứa chữ số"),
     password: z
       .string()
       .min(6, "Password tối thiểu 6 ký tự")
       .max(32, "Password tối đa 32 ký tự"),
-    confirmPassword: z.string().min(8, "Xác nhận mật khẩu là bắt buộc"),
+    confirmPassword: z.string().min(6, "Xác nhận mật khẩu là bắt buộc"),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Mật khẩu xác nhận không khớp",

@@ -8,13 +8,13 @@ export type ResponseData<T> = {
 };
 
 
-export type BaseResponseError = {
+export type ResponseError = {
   statusCode: number;
   message: string;
-  error: string;
+  errors: ValidationErrorItem[];
   timestamp: string;
   path: string;
-}
+};
 
 
 export type ValidationErrorItem = {
@@ -22,15 +22,6 @@ export type ValidationErrorItem = {
   message: string;
 }
 
-export type ValidationResponseError = BaseResponseError & {
-  statusCode: 400 | 422;
-  errors: ValidationErrorItem[];
-}
-
-
-export type ResponseError =
-  | ValidationResponseError
-  | BaseResponseError;
 
 export type AuthTokens = {
   accessToken: string;
