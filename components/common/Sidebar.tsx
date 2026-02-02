@@ -11,7 +11,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS } from '@/constants/theme';
-import { useAuthContext } from '@/lib/authContext';
+import { useAuthContext } from '@/contexts/authContext';
 import { useSessionStore } from '@/stores/storeSession';
 
 interface SidebarItem {

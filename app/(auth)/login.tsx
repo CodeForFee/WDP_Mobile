@@ -7,50 +7,46 @@ import {
   Platform,
   ScrollView,
   TouchableOpacity,
-
 } from 'react-native';
 import { Link, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, TYPOGRAPHY, SPACING, RADIUS, SIZES } from '@/constants/theme';
-import { Input, Button } from '@/components/common';
-import { useAuthContext } from '@/lib/authContext';
-import { LoginInput } from '@/schemas/authSchema';
+import { useForm, Controller } from 'react-hook-form';
 
+import { COLORS, TYPOGRAPHY, SPACING, RADIUS } from '@/constants/theme';
+import { Input, Button } from '@/components/common';
+import { useAuthContext } from '@/contexts/authContext';
+import { LoginInput } from '@/schemas/authSchema';
+import {  handleErrorApi } from '@/lib/errors';
 
 export default function LoginScreen() {
   const router = useRouter();
-  // Pre-fill with a test account for ease of use
-  const [email, setEmail] = useState('admin@gmail.com');
-  const [password, setPassword] = useState('pass123456789');
-  const [loading, setLoading] = useState(false);
-  const [showRoleSelector, setShowRoleSelector] = useState(false);
   const { login } = useAuthContext();
-  const handleLogin = async ({ email, password }: LoginInput) => {
-    // call api
-    setLoading(true);
+  const [loading, setLoading] = useState(false);
+
+  const {
+    control,
+    handleSubmit,
+    setError,
+    formState: { errors },
+  } = useForm<LoginInput>({
+    defaultValues: {
+      email: 'admin@gmail.com',
+      password: 'pass123456789',
+    },
+  });
+
+  const onSubmit = async (values: LoginInput) => {
     try {
-      login({ email, password });
+      setLoading(true);
+      await login(values);
+      router.replace('/(franchise-staff)');
+
+
     } catch (error) {
-      console.error('Login failed:', error);
+      handleErrorApi({ error, setError });
     } finally {
       setLoading(false);
-    }
-  };
-
-  const selectRole = (role: string) => {
-    setShowRoleSelector(false);
-    switch (role) {
-      case 'franchise':
-        router.replace('/(franchise-staff)');
-        break;
-      // case 'kitchen':
-      //   router.replace('/(kitchen-staff)');
-      //   break;
-      // case 'coordinator':
-      //   router.replace('/(coordinator)');
-      //   break;
-
     }
   };
 
@@ -60,145 +56,57 @@ export default function LoginScreen() {
       style={styles.container}
     >
       <StatusBar style="dark" />
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Brand Header */}
+
+      <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
-          <View style={styles.logoContainer}>
-            <Ionicons name="fast-food" size={64} color={COLORS.primary} />
-          </View>
+          <Ionicons name="fast-food" size={64} color={COLORS.primary} />
           <Text style={styles.appName}>Crispy Pro</Text>
-          <Text style={styles.tagline}>Franchise Operations Management</Text>
         </View>
 
-        {/* Login Form */}
-        <View style={styles.formContainer}>
-          <Text style={styles.welcomeText}>Welcome Back!</Text>
-          <Text style={styles.instructionText}>Please sign in to your account</Text>
-
-          <Input
-            label="Email Address"
-            placeholder="name@company.com"
-            value={email}
-            onChangeText={setEmail}
-            icon="mail-outline"
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
-
-          <Input
-            label="Password"
-            placeholder="Enter your password"
-            value={password}
-            onChangeText={setPassword}
-            icon="lock-closed-outline"
-            secureTextEntry
-          />
-
-          <View style={styles.forgotPasswordRow}>
-            <TouchableOpacity style={styles.rememberMe}>
-              <View style={styles.checkbox}>
-                <Ionicons name="checkmark" size={14} color={COLORS.primary} />
-              </View>
-              <Text style={styles.rememberText}>Remember me</Text>
-            </TouchableOpacity>
-            <Link href="/(auth)/forgot-password">
-              <Text style={styles.forgotText}>Forgot Password?</Text>
-            </Link>
-          </View>
-
-          <Button
-            title="Sign In"
-            onPress={() => handleLogin({ email, password })}
-            loading={loading}
-            fullWidth
-            size="lg"
-            style={styles.signInButton}
-          />
-
-
-          {/* Social Login */}
-          <View style={styles.dividerContainer}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>or continue with</Text>
-            <View style={styles.dividerLine} />
-          </View>
-
-          <View style={styles.socialRow}>
-
-            <TouchableOpacity style={styles.socialButton}>
-              <Ionicons name="logo-google" size={24} color={COLORS.textPrimary} />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.socialButton}>
-              <Ionicons name="logo-apple" size={24} color={COLORS.textPrimary} />
-            </TouchableOpacity>
-          </View>
-
-          {/* Role Selection Modal (Simulated) */}
-          {showRoleSelector && (
-            <View style={styles.roleOverlay}>
-              <View style={styles.roleModal}>
-                <Text style={styles.roleTitle}>Select Role</Text>
-                <Text style={styles.roleSubtitle}>Which dashboard would you like to access?</Text>
-
-                <TouchableOpacity
-                  style={styles.roleOption}
-                  onPress={() => selectRole('franchise')}
-                >
-                  <View style={[styles.roleIcon, { backgroundColor: COLORS.primaryLight }]}>
-                    <Ionicons name="storefront" size={24} color={COLORS.primary} />
-                  </View>
-                  <View>
-                    <Text style={styles.roleName}>Franchise Staff</Text>
-                    <Text style={styles.roleDesc}>Store Operations & Sales</Text>
-                  </View>
-                  <Ionicons name="chevron-forward" size={20} color={COLORS.textMuted} />
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={styles.roleOption}
-                  onPress={() => selectRole('kitchen')}
-                >
-                  <View style={[styles.roleIcon, { backgroundColor: COLORS.errorLight }]}>
-                    <Ionicons name="restaurant" size={24} color={COLORS.error} />
-                  </View>
-                  <View>
-                    <Text style={styles.roleName}>Kitchen Staff</Text>
-                    <Text style={styles.roleDesc}>Production & Inventory</Text>
-                  </View>
-                  <Ionicons name="chevron-forward" size={20} color={COLORS.textMuted} />
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={styles.roleOption}
-                  onPress={() => selectRole('coordinator')}
-                >
-                  <View style={[styles.roleIcon, { backgroundColor: COLORS.infoLight }]}>
-                    <Ionicons name="navigate" size={24} color={COLORS.info} />
-                  </View>
-                  <View>
-                    <Text style={styles.roleName}>Coordinator</Text>
-                    <Text style={styles.roleDesc}>Dispatch & Logistics</Text>
-                  </View>
-                  <Ionicons name="chevron-forward" size={20} color={COLORS.textMuted} />
-                </TouchableOpacity>
-              </View>
-            </View>
+        {/* ===== EMAIL ===== */}
+        <Controller
+          control={control}
+          name="email"
+          render={({ field: { value, onChange } }) => (
+            <Input
+              label="Email"
+              value={value}
+              onChangeText={onChange}
+              error={errors.email?.message}
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
           )}
-        </View>
+        />
 
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>Don't have an account? </Text>
-          <TouchableOpacity>
-            <Text style={styles.signUpLink}>Sign up</Text>
-          </TouchableOpacity>
-        </View>
+        {/* ===== PASSWORD ===== */}
+        <Controller
+          control={control}
+          name="password"
+          render={({ field: { value, onChange } }) => (
+            <Input
+              label="Password"
+              value={value}
+              onChangeText={onChange}
+              error={errors.password?.message}
+              secureTextEntry
+            />
+          )}
+        />
+          <Link href="/forgot-password" style={styles.forgotText}>
+            Forgot Password?
+          </Link>
+        <Button
+          title="Sign In"
+          loading={loading}
+          fullWidth
+          onPress={handleSubmit(onSubmit)}
+        />
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {
@@ -279,6 +187,9 @@ const styles = StyleSheet.create({
     fontSize: TYPOGRAPHY.fontSize.sm,
     color: COLORS.primary,
     fontWeight: TYPOGRAPHY.fontWeight.semibold,
+     // text end
+     textAlign: 'right',
+     marginBottom: SPACING.sm
   },
   signInButton: {
     marginBottom: SPACING.xl,
@@ -385,4 +296,5 @@ const styles = StyleSheet.create({
     fontSize: TYPOGRAPHY.fontSize.sm,
     color: COLORS.textMuted,
   },
+  
 });
