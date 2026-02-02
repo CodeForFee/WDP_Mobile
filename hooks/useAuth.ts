@@ -1,4 +1,4 @@
-import api from "@/api/baseApi";
+import api from "@/api/interceptor";
 import { ENDPOINT } from "@/api/endpoint";
 import { LoginInput, ResetPasswordInput } from "@/schemas/authSchema";
 import { AuthTokens, ResponseData, User } from "@/type";

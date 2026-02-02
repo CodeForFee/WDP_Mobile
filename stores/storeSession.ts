@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import * as SecureStore from 'expo-secure-store';
-import { jwtDecode } from 'jwt-decode';
+import { decodeJWT } from '@/lib/utils';
+
 
 /* ================= TYPES ================= */
 
@@ -41,7 +42,7 @@ export const useSessionStore = create<SessionState>((set) => ({
 
     if (!accessToken || !refreshToken) return;
 
-    const decoded = jwtDecode<JwtPayload>(accessToken);
+    const decoded = decodeJWT<JwtPayload>(accessToken);
 
     // expired token → logout luôn
     if (decoded.exp * 1000 < Date.now()) {
@@ -60,7 +61,7 @@ export const useSessionStore = create<SessionState>((set) => ({
 
   /* Login */
   login: async (accessToken, refreshToken) => {
-    const decoded = jwtDecode<JwtPayload>(accessToken);
+    const decoded = decodeJWT<JwtPayload>(accessToken);
 
     await SecureStore.setItemAsync('access_token', accessToken);
     await SecureStore.setItemAsync('refresh_token', refreshToken);
@@ -75,7 +76,7 @@ export const useSessionStore = create<SessionState>((set) => ({
 
   /* Refresh access token */
   refresh: async (accessToken, refreshToken) => {
-    const decoded = jwtDecode<JwtPayload>(accessToken);
+    const decoded = decodeJWT<JwtPayload>(accessToken);
 
     await SecureStore.setItemAsync('access_token', accessToken);
     await SecureStore.setItemAsync('refresh_token', refreshToken);
