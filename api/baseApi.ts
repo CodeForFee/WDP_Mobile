@@ -1,25 +1,22 @@
-
-
-import envconfig from '@/config';
-import { useSessionStore } from '@/stores/storeSession';
 import axios, {
   AxiosError,
   AxiosRequestConfig,
   InternalAxiosRequestConfig,
-} from 'axios';
-import { AUTH_ENDPOINT } from './endpoint';
-import { ResponseData } from '@/type';
+} from "axios";
+import envconfig from "@/config";
+import { ENDPOINT } from "./endpoint";
+import { HttpErrorCode } from "@/enum";
+import { EntityError, HttpError } from "@/lib/errors";
+import { useSessionStore } from "@/stores/storeSession";
+import { ResponseData, ResponseError } from "@/type";
 
-
-
-
-/* ================= CREATE INSTANCE ================= */
+/* ================= AXIOS INSTANCE ================= */
 
 export const api = axios.create({
   baseURL: envconfig.EXPO_PUBLIC_BASE_URL,
   timeout: 15000,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
 });
 
@@ -38,9 +35,10 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-/* ================= RESPONSE INTERCEPTOR ================= */
+/* ================= REFRESH TOKEN QUEUE ================= */
 
 let isRefreshing = false;
+
 let failedQueue: {
   resolve: (value?: unknown) => void;
   reject: (reason?: unknown) => void;
@@ -62,23 +60,37 @@ const processQueue = (error: unknown, token: string | null = null) => {
   failedQueue = [];
 };
 
+/* ================= RESPONSE INTERCEPTOR ================= */
 
 api.interceptors.response.use(
   (response) => response,
-  async (error: AxiosError) => {
+
+  async (error: AxiosError<ResponseError>) => {
     const originalRequest = error.config as AxiosRequestConfig & {
       _retry?: boolean;
     };
 
+    /* ========== 401 – REFRESH TOKEN ========== */
+
     if (
-      error.response?.status === 401 &&
-      !originalRequest._retry
+      error.response?.status === HttpErrorCode.UNAUTHORIZED &&
+      !originalRequest._retry &&
+      !originalRequest.url?.includes(ENDPOINT.REFRESH)
     ) {
       const session = useSessionStore.getState();
 
       if (!session.refreshToken) {
         session.logout();
-        return Promise.reject(error);
+
+        return Promise.reject(
+          new HttpError(HttpErrorCode.UNAUTHORIZED, {
+            statusCode: HttpErrorCode.UNAUTHORIZED,
+            message: "Phiên đăng nhập đã hết hạn",
+            error: "Unauthorized",
+            timestamp: new Date().toISOString(),
+            path: originalRequest.url ?? "",
+          })
+        );
       }
 
       originalRequest._retry = true;
@@ -96,29 +108,82 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const res : ResponseData<{ accessToken: string,refreshToken: string }> = await axios.post(
-          `${envconfig.EXPO_PUBLIC_BASE_URL}${AUTH_ENDPOINT.REFRESH}`,
-          {
-            refreshToken: session.refreshToken,
-          }
+        const res = await axios.post<
+          ResponseData<{ accessToken: string; refreshToken: string }>
+        >(`${envconfig.EXPO_PUBLIC_BASE_URL}${ENDPOINT.REFRESH}`, {
+          refreshToken: session.refreshToken,
+        });
+
+        await session.refresh(
+          res.data.data.accessToken,
+          res.data.data.refreshToken
         );
 
-      
-
-        await session.refresh(res.data.accessToken, res.data.refreshToken);
-
-        processQueue(null, res.data.accessToken);
+        processQueue(null, res.data.data.accessToken);
         return api(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError, null);
         session.logout();
-        return Promise.reject(refreshError);
+
+        return Promise.reject(
+          new HttpError(HttpErrorCode.UNAUTHORIZED, {
+            statusCode: HttpErrorCode.UNAUTHORIZED,
+            message: "Phiên đăng nhập đã hết hạn",
+            error: "Unauthorized",
+            timestamp: new Date().toISOString(),
+            path: originalRequest.url ?? "",
+          })
+        );
       } finally {
         isRefreshing = false;
       }
     }
 
-    return Promise.reject(error);
+    /* ========== BACKEND ERROR ========== */
+
+    if (error.response?.data) {
+      const data = error.response.data;
+
+     
+      if (
+        (data.statusCode === HttpErrorCode.BAD_REQUEST || data.statusCode === HttpErrorCode.UNPROCESSABLE_ENTITY) &&
+        "errors" in data &&
+        Array.isArray((data as any).errors)
+      ) {
+        return Promise.reject(new EntityError(data));
+      }
+
+
+      return Promise.reject(
+        new HttpError(data.statusCode, data)
+      );
+    }
+
+    /* ========== NETWORK ERROR ========== */
+
+    if (error.request) {
+      return Promise.reject(
+        new HttpError(HttpErrorCode.INTERNAL_SERVER_ERROR, {
+          statusCode: HttpErrorCode.INTERNAL_SERVER_ERROR,
+          message: "Không thể kết nối server",
+          error: "Network Error",
+          timestamp: new Date().toISOString(),
+          path: originalRequest.url ?? "",
+        })
+      );
+    }
+
+    /* ========== UNKNOWN ERROR ========== */
+
+    return Promise.reject(
+      new HttpError(HttpErrorCode.INTERNAL_SERVER_ERROR, {
+        statusCode: HttpErrorCode.INTERNAL_SERVER_ERROR,
+        message: error.message || "Có lỗi xảy ra",
+        error: "Unknown Error",
+        timestamp: new Date().toISOString(),
+        path: originalRequest.url ?? "",
+      })
+    );
   }
 );
 
