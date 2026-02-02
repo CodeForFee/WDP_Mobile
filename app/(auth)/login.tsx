@@ -12,37 +12,36 @@ import { Link, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { useForm, Controller } from 'react-hook-form';
-
+import { zodResolver } from '@hookform/resolvers/zod';
 import { COLORS, TYPOGRAPHY, SPACING, RADIUS } from '@/constants/theme';
 import { Input, Button } from '@/components/common';
 import { useAuthContext } from '@/contexts/authContext';
-import { LoginInput } from '@/schemas/authSchema';
-import {  handleErrorApi } from '@/lib/errors';
+import { authSchema, LoginInput } from '@/schemas/authSchema';
+import {   handleErrorApi } from '@/lib/errors';
 
 export default function LoginScreen() {
   const router = useRouter();
   const { login } = useAuthContext();
   const [loading, setLoading] = useState(false);
 
-  const {
-    control,
-    handleSubmit,
-    setError,
-    formState: { errors },
-  } = useForm<LoginInput>({
-    defaultValues: {
-      email: 'admin@gmail.com',
-      password: 'pass123456789',
-    },
-  });
+const {
+  control,
+  handleSubmit,
+  setError,
+  formState: { errors },
+} = useForm<LoginInput>({
+  resolver: zodResolver(authSchema), 
+  defaultValues: {
+    email: 'admin@gmail.com',
+    password: 'pass123456789',
+  },
+});
 
   const onSubmit = async (values: LoginInput) => {
     try {
       setLoading(true);
       await login(values);
       router.replace('/(franchise-staff)');
-
-
     } catch (error) {
       handleErrorApi({ error, setError });
     } finally {

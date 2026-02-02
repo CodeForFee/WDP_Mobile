@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
@@ -9,14 +9,13 @@ import { COLORS, SPACING, TYPOGRAPHY, SIZES } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { handleErrorApi } from '@/lib/errors';
+import { Input, Button } from '@/components/common';
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Form for Step 1 - Email
   const {
@@ -54,6 +53,7 @@ export default function ForgotPasswordScreen() {
       const res = await useAuth.forgotPassword(values.email);
       setEmail(values.email);
       Alert.alert(res.message);
+      setStep(2);
     } catch (error) {
       handleErrorApi({ error, setError: setEmailError });
     } finally {
@@ -64,15 +64,21 @@ export default function ForgotPasswordScreen() {
   const handleResetPassword = async (values: ResetPasswordInput) => {
     setLoading(true);
     try {
-      const res = await useAuth.resetPassword(values);
-      Alert.alert(res.message);
+      const req: ResetPasswordInput = {
+        ...values,
+        email: email
+      }
+      const res = await useAuth.resetPassword(req);
+      Alert.alert('Thành công', res.message);
       router.replace('/(auth)/login');
     } catch (error) {
+
       handleErrorApi({ error, setError: setResetError });
     } finally {
       setLoading(false);
     }
   };
+
 
   return (
     <SafeAreaView style={styles.container}>
@@ -133,36 +139,30 @@ export default function ForgotPasswordScreen() {
                   control={emailControl}
                   name="email"
                   render={({ field: { value, onChange } }) => (
-                    <View>
-                      <View style={styles.inputContainer}>
-                        <Ionicons name="mail-outline" size={20} color={COLORS.textMuted} style={styles.inputIcon} />
-                        <TextInput
-                          style={styles.input}
-                          placeholder="Nhập email"
-                          placeholderTextColor={COLORS.textMuted}
-                          value={value}
-                          onChangeText={onChange}
-                          keyboardType="email-address"
-                          autoCapitalize="none"
-                          editable={!loading}
-                        />
-                      </View>
-                      {emailErrors.email && (
-                        <Text style={styles.errorText}>{emailErrors.email.message}</Text>
-                      )}
-                    </View>
+                    <Input
+                      icon="mail-outline"
+                      placeholder="Nhập email của bạn"
+                      value={value}
+                      onChangeText={onChange}
+                      error={emailErrors.email?.message}
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      editable={!loading}
+                      variant="filled"
+                    />
                   )}
                 />
 
-                <TouchableOpacity
-                  style={[styles.primaryButton, loading && styles.buttonDisabled]}
+                <Button
+                  title="Gửi mã xác nhận"
                   onPress={handleEmailSubmit(handleSendEmail)}
                   disabled={loading}
-                >
-                  <Text style={styles.primaryButtonText}>
-                    {loading ? 'Đang gửi...' : 'Gửi mã xác nhận'}
-                  </Text>
-                </TouchableOpacity>
+                  loading={loading}
+                  variant="primary"
+                  size="lg"
+                  fullWidth
+                  icon="send-outline"
+                />
               </View>
             ) : (
               // Step 2: Reset Password
@@ -180,24 +180,17 @@ export default function ForgotPasswordScreen() {
                   control={resetControl}
                   name="code"
                   render={({ field: { value, onChange } }) => (
-                    <View>
-                      <View style={styles.inputContainer}>
-                        <Ionicons name="key-outline" size={20} color={COLORS.textMuted} style={styles.inputIcon} />
-                        <TextInput
-                          style={styles.input}
-                          placeholder="Nhập mã xác nhận (6 ký tự)"
-                          placeholderTextColor={COLORS.textMuted}
-                          value={value}
-                          onChangeText={onChange}
-                          maxLength={6}
-                          keyboardType="number-pad"
-                          editable={!loading}
-                        />
-                      </View>
-                      {resetErrors.code && (
-                        <Text style={styles.errorText}>{resetErrors.code.message}</Text>
-                      )}
-                    </View>
+                    <Input
+                      icon="key-outline"
+                      placeholder="Nhập mã xác nhận (6 ký tự)"
+                      value={value}
+                      onChangeText={onChange}
+                      error={resetErrors.code?.message}
+                      maxLength={6}
+                      autoCapitalize="none"
+                      editable={!loading}
+                      variant="filled"
+                    />
                   )}
                 />
 
@@ -206,30 +199,16 @@ export default function ForgotPasswordScreen() {
                   control={resetControl}
                   name="password"
                   render={({ field: { value, onChange } }) => (
-                    <View>
-                      <View style={styles.inputContainer}>
-                        <Ionicons name="lock-closed-outline" size={20} color={COLORS.textMuted} style={styles.inputIcon} />
-                        <TextInput
-                          style={styles.input}
-                          placeholder="Mật khẩu mới (6-32 ký tự)"
-                          placeholderTextColor={COLORS.textMuted}
-                          value={value}
-                          onChangeText={onChange}
-                          secureTextEntry={!showPassword}
-                          editable={!loading}
-                        />
-                        <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
-                          <Ionicons
-                            name={showPassword ? 'eye-outline' : 'eye-off-outline'}
-                            size={20}
-                            color={COLORS.textMuted}
-                          />
-                        </TouchableOpacity>
-                      </View>
-                      {resetErrors.password && (
-                        <Text style={styles.errorText}>{resetErrors.password.message}</Text>
-                      )}
-                    </View>
+                    <Input
+                      icon="lock-closed-outline"
+                      placeholder="Mật khẩu mới (6-32 ký tự)"
+                      value={value}
+                      onChangeText={onChange}
+                      error={resetErrors.password?.message}
+                      secureTextEntry
+                      editable={!loading}
+                      variant="filled"
+                    />
                   )}
                 />
 
@@ -238,54 +217,45 @@ export default function ForgotPasswordScreen() {
                   control={resetControl}
                   name="confirmPassword"
                   render={({ field: { value, onChange } }) => (
-                    <View>
-                      <View style={styles.inputContainer}>
-                        <Ionicons name="lock-closed-outline" size={20} color={COLORS.textMuted} style={styles.inputIcon} />
-                        <TextInput
-                          style={styles.input}
-                          placeholder="Xác nhận mật khẩu"
-                          placeholderTextColor={COLORS.textMuted}
-                          value={value}
-                          onChangeText={onChange}
-                          secureTextEntry={!showConfirmPassword}
-                          editable={!loading}
-                        />
-                        <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)} style={styles.eyeIcon}>
-                          <Ionicons
-                            name={showConfirmPassword ? 'eye-outline' : 'eye-off-outline'}
-                            size={20}
-                            color={COLORS.textMuted}
-                          />
-                        </TouchableOpacity>
-                      </View>
-                      {resetErrors.confirmPassword && (
-                        <Text style={styles.errorText}>{resetErrors.confirmPassword.message}</Text>
-                      )}
-                    </View>
+                    <Input
+                      icon="lock-closed-outline"
+                      placeholder="Xác nhận mật khẩu"
+                      value={value}
+                      onChangeText={onChange}
+                      error={resetErrors.confirmPassword?.message}
+                      secureTextEntry
+                      editable={!loading}
+                      variant="filled"
+                    />
                   )}
                 />
 
-                <TouchableOpacity
-                  style={[styles.primaryButton, loading && styles.buttonDisabled]}
+                <Button
+                  title="Đặt lại mật khẩu"
                   onPress={handleResetSubmit(handleResetPassword)}
                   disabled={loading}
-                >
-                  <Text style={styles.primaryButtonText}>
-                    {loading ? 'Đang xử lý...' : 'Đặt lại mật khẩu'}
-                  </Text>
-                </TouchableOpacity>
+                  loading={loading}
+                  variant="primary"
+                  size="lg"
+                  fullWidth
+                  icon="checkmark-circle-outline"
+                />
 
                 {/* Resend Code */}
-                <TouchableOpacity
-                  style={styles.resendButton}
-                  onPress={() => {
-                    setStep(1);
-                    resetForm();
-                  }}
-                  disabled={loading}
-                >
-                  <Text style={styles.resendButtonText}>Gửi lại mã xác nhận</Text>
-                </TouchableOpacity>
+                <View style={{ marginTop: SPACING.lg }}>
+                  <Button
+                    title="Gửi lại mã xác nhận"
+                    onPress={() => {
+                      setStep(1);
+                      resetForm();
+                    }}
+                    disabled={loading}
+                    variant="ghost"
+                    size="md"
+                    fullWidth
+                    icon="refresh-outline"
+                  />
+                </View>
               </View>
             )}
           </View>
@@ -410,64 +380,5 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 22,
     marginBottom: SPACING.xl,
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.background,
-    borderRadius: 8,
-    paddingHorizontal: SPACING.md,
-    marginBottom: SPACING.xs,
-    borderWidth: 1,
-    borderColor: COLORS.backgroundTertiary,
-  },
-  inputIcon: {
-    marginRight: SPACING.sm,
-  },
-  input: {
-    flex: 1,
-    height: 50,
-    fontSize: TYPOGRAPHY.fontSize.md,
-    color: COLORS.textPrimary,
-  },
-  eyeIcon: {
-    padding: SPACING.xs,
-  },
-  errorText: {
-    fontSize: TYPOGRAPHY.fontSize.sm,
-    color: COLORS.error || '#ef4444',
-    marginTop: SPACING.xs,
-    marginBottom: SPACING.xs,
-    marginLeft: SPACING.xs,
-  },
-  primaryButton: {
-    backgroundColor: COLORS.primary,
-    borderRadius: 8,
-    paddingVertical: SPACING.md + 2,
-    alignItems: 'center',
-    marginTop: SPACING.md,
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
-  primaryButtonText: {
-    fontSize: TYPOGRAPHY.fontSize.md,
-    fontWeight: TYPOGRAPHY.fontWeight.semibold as any,
-    color: COLORS.textPrimary,
-  },
-  resendButton: {
-    marginTop: SPACING.lg,
-    alignItems: 'center',
-  },
-  resendButtonText: {
-    fontSize: TYPOGRAPHY.fontSize.md,
-    color: COLORS.secondary,
-    fontWeight: TYPOGRAPHY.fontWeight.semibold as any,
-    textDecorationLine: 'underline',
   },
 });
