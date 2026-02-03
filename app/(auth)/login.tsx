@@ -7,382 +7,142 @@ import {
   Platform,
   ScrollView,
   TouchableOpacity,
-
+  Image,
 } from 'react-native';
-import { Link, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { Ionicons } from '@expo/vector-icons';
-import { COLORS, TYPOGRAPHY, SPACING, RADIUS, SIZES } from '@/constants/theme';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Input, Button } from '@/components/common';
-import { useAuthContext } from '@/lib/authContext';
-import { LoginInput } from '@/schemas/authSchema';
+import { useAuthContext } from '@/contexts/authContext';
+import { authSchema, LoginInput } from '@/schemas/authSchema';
+import { handleErrorApi } from '@/lib/errors';
+import Svg, { Path } from 'react-native-svg';
 
+// --- GOOGLE ICON SVG ---
+const GoogleIcon = () => (
+  <Svg viewBox="-3 0 262 262" width={32} height={32}>
+    <Path d="M255.878 133.451c0-10.734-.871-18.567-2.756-26.69H130.55v48.448h71.947c-1.45 12.04-9.283 30.172-26.69 42.356l-.244 1.622 38.755 30.023 2.685.268c24.659-22.774 38.875-56.282 38.875-96.027" fill="#4285F4" />
+    <Path d="M130.55 261.1c35.248 0 64.839-11.605 86.453-31.622l-41.196-31.913c-11.024 7.688-25.82 13.055-45.257 13.055-34.523 0-63.824-22.773-74.269-54.25l-1.531.13-40.298 31.187-.527 1.465C35.393 231.798 79.49 261.1 130.55 261.1" fill="#34A853" />
+    <Path d="M56.281 156.37c-2.756-8.123-4.351-16.827-4.351-25.82 0-8.994 1.595-17.697 4.206-25.82l-.073-1.73L15.26 71.312l-1.335.635C5.077 89.644 0 109.517 0 130.55s5.077 40.905 13.925 58.602l42.356-32.782" fill="#FBBC05" />
+    <Path d="M130.55 50.479c24.514 0 41.05 10.589 50.479 19.438l36.844-35.974C195.245 12.91 165.798 0 130.55 0 79.49 0 35.393 29.301 13.925 71.947l42.211 32.783c10.59-31.477 39.891-54.251 74.414-54.251" fill="#EB4335" />
+  </Svg>
+);
 
 export default function LoginScreen() {
   const router = useRouter();
-  // Pre-fill with a test account for ease of use
-  const [email, setEmail] = useState('admin@gmail.com');
-  const [password, setPassword] = useState('pass123456789');
-  const [loading, setLoading] = useState(false);
-  const [showRoleSelector, setShowRoleSelector] = useState(false);
   const { login } = useAuthContext();
-  const handleLogin = async ({ email, password }: LoginInput) => {
-    // call api
-    setLoading(true);
+  const [loading, setLoading] = useState(false);
+
+  const { control, handleSubmit, setError, formState: { errors } } = useForm<LoginInput>({
+    resolver: zodResolver(authSchema),
+    defaultValues: { email: 'jonnytran.working@gmail.com', password: 'pass123456789' },
+  });
+
+  const onSubmit = async (values: LoginInput) => {
     try {
-      login({ email, password });
+      setLoading(true);
+      await login(values);
+      router.replace('/(franchise-staff)/(tabs)');
     } catch (error) {
-      console.error('Login failed:', error);
+      handleErrorApi({ error, setError });
     } finally {
       setLoading(false);
     }
   };
 
-  const selectRole = (role: string) => {
-    setShowRoleSelector(false);
-    switch (role) {
-      case 'franchise':
-        router.replace('/(franchise-staff)');
-        break;
-      // case 'kitchen':
-      //   router.replace('/(kitchen-staff)');
-      //   break;
-      // case 'coordinator':
-      //   router.replace('/(coordinator)');
-      //   break;
-
-    }
-  };
-
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
-    >
+    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.container}>
       <StatusBar style="dark" />
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Brand Header */}
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        
         <View style={styles.header}>
-          <View style={styles.logoContainer}>
-            <Ionicons name="fast-food" size={64} color={COLORS.primary} />
-          </View>
+          <Image 
+            source={require('@/assets/images/logo.png')} 
+            style={styles.logoImage}
+            resizeMode="contain"
+          />
           <Text style={styles.appName}>Crispy Pro</Text>
-          <Text style={styles.tagline}>Franchise Operations Management</Text>
+          <Text style={styles.subtitle}>Quản lý kho hàng chuyên nghiệp</Text>
         </View>
 
-        {/* Login Form */}
         <View style={styles.formContainer}>
-          <Text style={styles.welcomeText}>Welcome Back!</Text>
-          <Text style={styles.instructionText}>Please sign in to your account</Text>
-
-          <Input
-            label="Email Address"
-            placeholder="name@company.com"
-            value={email}
-            onChangeText={setEmail}
-            icon="mail-outline"
-            keyboardType="email-address"
-            autoCapitalize="none"
+          <Controller
+            control={control}
+            name="email"
+            render={({ field: { value, onChange } }) => (
+              <Input
+                placeholder="Email Address"
+                value={value}
+                onChangeText={onChange}
+                error={errors.email?.message}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                variant="filled" // Sử dụng variant có sẵn để tạo khung trắng
+                icon="mail-outline" // Thêm icon cho đẹp
+                inputStyle={{ backgroundColor: '#FFF' }} // Đảm bảo nền bên trong trắng
+              />
+            )}
           />
 
-          <Input
-            label="Password"
-            placeholder="Enter your password"
-            value={password}
-            onChangeText={setPassword}
-            icon="lock-closed-outline"
-            secureTextEntry
+          <Controller
+            control={control}
+            name="password"
+            render={({ field: { value, onChange } }) => (
+              <Input
+                placeholder="Password"
+                value={value}
+                onChangeText={onChange}
+                error={errors.password?.message}
+                secureTextEntry
+                variant="filled"
+                icon="lock-closed-outline"
+                inputStyle={{ backgroundColor: '#FFF' }}
+              />
+            )}
           />
 
-          <View style={styles.forgotPasswordRow}>
-            <TouchableOpacity style={styles.rememberMe}>
-              <View style={styles.checkbox}>
-                <Ionicons name="checkmark" size={14} color={COLORS.primary} />
-              </View>
-              <Text style={styles.rememberText}>Remember me</Text>
-            </TouchableOpacity>
-            <Link href="/(auth)/forgot-password">
-              <Text style={styles.forgotText}>Forgot Password?</Text>
-            </Link>
-          </View>
+          <TouchableOpacity onPress={() => router.push('/forgot-password')}>
+            <Text style={styles.forgotText}>Forgot Password?</Text>
+          </TouchableOpacity>
 
-          <Button
-            title="Sign In"
-            onPress={() => handleLogin({ email, password })}
-            loading={loading}
-            fullWidth
-            size="lg"
-            style={styles.signInButton}
+          <Button 
+            title="Sign In" 
+            loading={loading} 
+            onPress={handleSubmit(onSubmit)} 
+            style={styles.signInBtn} 
           />
-
-
-          {/* Social Login */}
-          <View style={styles.dividerContainer}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>or continue with</Text>
-            <View style={styles.dividerLine} />
-          </View>
-
-          <View style={styles.socialRow}>
-
-            <TouchableOpacity style={styles.socialButton}>
-              <Ionicons name="logo-google" size={24} color={COLORS.textPrimary} />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.socialButton}>
-              <Ionicons name="logo-apple" size={24} color={COLORS.textPrimary} />
-            </TouchableOpacity>
-          </View>
-
-          {/* Role Selection Modal (Simulated) */}
-          {showRoleSelector && (
-            <View style={styles.roleOverlay}>
-              <View style={styles.roleModal}>
-                <Text style={styles.roleTitle}>Select Role</Text>
-                <Text style={styles.roleSubtitle}>Which dashboard would you like to access?</Text>
-
-                <TouchableOpacity
-                  style={styles.roleOption}
-                  onPress={() => selectRole('franchise')}
-                >
-                  <View style={[styles.roleIcon, { backgroundColor: COLORS.primaryLight }]}>
-                    <Ionicons name="storefront" size={24} color={COLORS.primary} />
-                  </View>
-                  <View>
-                    <Text style={styles.roleName}>Franchise Staff</Text>
-                    <Text style={styles.roleDesc}>Store Operations & Sales</Text>
-                  </View>
-                  <Ionicons name="chevron-forward" size={20} color={COLORS.textMuted} />
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={styles.roleOption}
-                  onPress={() => selectRole('kitchen')}
-                >
-                  <View style={[styles.roleIcon, { backgroundColor: COLORS.errorLight }]}>
-                    <Ionicons name="restaurant" size={24} color={COLORS.error} />
-                  </View>
-                  <View>
-                    <Text style={styles.roleName}>Kitchen Staff</Text>
-                    <Text style={styles.roleDesc}>Production & Inventory</Text>
-                  </View>
-                  <Ionicons name="chevron-forward" size={20} color={COLORS.textMuted} />
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={styles.roleOption}
-                  onPress={() => selectRole('coordinator')}
-                >
-                  <View style={[styles.roleIcon, { backgroundColor: COLORS.infoLight }]}>
-                    <Ionicons name="navigate" size={24} color={COLORS.info} />
-                  </View>
-                  <View>
-                    <Text style={styles.roleName}>Coordinator</Text>
-                    <Text style={styles.roleDesc}>Dispatch & Logistics</Text>
-                  </View>
-                  <Ionicons name="chevron-forward" size={20} color={COLORS.textMuted} />
-                </TouchableOpacity>
-              </View>
-            </View>
-          )}
         </View>
 
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>Don't have an account? </Text>
-          <TouchableOpacity>
-            <Text style={styles.signUpLink}>Sign up</Text>
+        <View style={styles.dividerContainer}>
+          <View style={styles.line} />
+          <Text style={styles.dividerText}>Or continue with</Text>
+          <View style={styles.line} />
+        </View>
+
+        <View style={styles.socialRow}>
+          <TouchableOpacity activeOpacity={0.6}>
+            <GoogleIcon />
           </TouchableOpacity>
         </View>
+        
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    padding: SPACING.lg,
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: SPACING['3xl'],
-  },
-  logoContainer: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: COLORS.backgroundSecondary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: SPACING.md,
-    borderWidth: 1,
-    borderColor: COLORS.primaryLight,
-  },
-  appName: {
-    fontSize: TYPOGRAPHY.fontSize['3xl'],
-    fontWeight: TYPOGRAPHY.fontWeight.bold,
-    color: COLORS.primary,
-    marginBottom: SPACING.xs,
-  },
-  tagline: {
-    fontSize: TYPOGRAPHY.fontSize.base,
-    color: COLORS.textSecondary,
-    fontWeight: TYPOGRAPHY.fontWeight.medium,
-  },
-  formContainer: {
-    width: '100%',
-  },
-  welcomeText: {
-    fontSize: TYPOGRAPHY.fontSize['2xl'],
-    fontWeight: TYPOGRAPHY.fontWeight.bold,
-    color: COLORS.textPrimary,
-    marginBottom: SPACING.xs,
-  },
-  instructionText: {
-    fontSize: TYPOGRAPHY.fontSize.base,
-    color: COLORS.textMuted,
-    marginBottom: SPACING.xl,
-  },
-  forgotPasswordRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: SPACING.xl,
-  },
-  rememberMe: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  checkbox: {
-    width: 20,
-    height: 20,
-    borderRadius: 6,
-    borderWidth: 2,
-    borderColor: COLORS.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: SPACING.sm,
-    backgroundColor: COLORS.backgroundSecondary,
-  },
-  rememberText: {
-    fontSize: TYPOGRAPHY.fontSize.sm,
-    color: COLORS.textSecondary,
-  },
-  forgotText: {
-    fontSize: TYPOGRAPHY.fontSize.sm,
-    color: COLORS.primary,
-    fontWeight: TYPOGRAPHY.fontWeight.semibold,
-  },
-  signInButton: {
-    marginBottom: SPACING.xl,
-  },
-  dividerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: SPACING.xl,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: COLORS.border,
-  },
-  dividerText: {
-    paddingHorizontal: SPACING.md,
-    color: COLORS.textMuted,
-    fontSize: TYPOGRAPHY.fontSize.sm,
-  },
-  socialRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: SPACING.lg,
-    marginBottom: SPACING.xl,
-  },
-  socialButton: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: COLORS.cardBackground,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: SPACING.xl,
-  },
-  footerText: {
-    fontSize: TYPOGRAPHY.fontSize.sm,
-    color: COLORS.textSecondary,
-  },
-  signUpLink: {
-    fontSize: TYPOGRAPHY.fontSize.sm,
-    color: COLORS.primary,
-    fontWeight: TYPOGRAPHY.fontWeight.bold,
-  },
-  // Role Modal Styles
-  roleOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(255,255,255,0.95)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 100,
-    borderRadius: RADIUS.lg,
-  },
-  roleModal: {
-    width: '100%',
-    padding: SPACING.lg,
-  },
-  roleTitle: {
-    fontSize: TYPOGRAPHY.fontSize['2xl'],
-    fontWeight: TYPOGRAPHY.fontWeight.bold,
-    color: COLORS.textPrimary,
-    marginBottom: SPACING.xs,
-    textAlign: 'center',
-  },
-  roleSubtitle: {
-    fontSize: TYPOGRAPHY.fontSize.base,
-    color: COLORS.textMuted,
-    marginBottom: SPACING.xl,
-    textAlign: 'center',
-  },
-  roleOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.cardBackground,
-    padding: SPACING.md,
-    borderRadius: RADIUS.lg,
-    marginBottom: SPACING.md,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  roleIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: SPACING.md,
-  },
-  roleName: {
-    fontSize: TYPOGRAPHY.fontSize.lg,
-    fontWeight: TYPOGRAPHY.fontWeight.bold,
-    color: COLORS.textPrimary,
-  },
-  roleDesc: {
-    fontSize: TYPOGRAPHY.fontSize.sm,
-    color: COLORS.textMuted,
-  },
+  container: { flex: 1, backgroundColor: '#F2F4F0' },
+  scrollContent: { flexGrow: 1, padding: 30, justifyContent: 'center' },
+  header: { alignItems: 'center', marginBottom: 40 },
+  logoImage: { width: 120, height: 120, marginBottom: 10 },
+  appName: { fontSize: 30, fontWeight: '900', color: '#1A1A1A', letterSpacing: -1 },
+  subtitle: { fontSize: 15, color: '#777', marginTop: 4 },
+  formContainer: { width: '100%' },
+  forgotText: { textAlign: 'right', color: '#89A54D', fontWeight: '700', marginVertical: 12 },
+  signInBtn: { backgroundColor: '#89A54D', borderRadius: 20, height: 56, marginTop: 10 },
+  dividerContainer: { flexDirection: 'row', alignItems: 'center', marginVertical: 40 },
+  line: { flex: 1, height: 1, backgroundColor: '#D6DBCF' },
+  dividerText: { marginHorizontal: 15, color: '#999', fontSize: 13, fontWeight: '600' },
+  socialRow: { alignItems: 'center', justifyContent: 'center' },
 });

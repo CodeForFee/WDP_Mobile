@@ -1,308 +1,161 @@
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  TextInput,
-  Alert,
-} from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, RefreshControl, Image } from 'react-native';
+import { LoadingSpinner } from '@/components/common';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS } from '@/constants/theme';
-import { Card, Button, Header } from '@/components/common';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useStoreOrder } from '@/stores/storeOrder';
+import { useOrder } from '@/hooks/useOrder';
+import { Product } from '@/type';
+import { handleErrorApi } from '@/lib/errors';
+import { COLORS } from '@/constants/theme';
 
-// Categories for ingredients/semi-finished products from Central Kitchen
-const categories = ['Tất cả', 'Nguyên liệu', 'Bán thành phẩm', 'Đồ uống', 'Đóng gói'];
-
-// Mock products from Central Kitchen catalog
-const centralKitchenProducts = [
-  { id: '1', name: 'Thịt gà tươi', description: 'Gà nguyên con đã sơ chế', price: 85000, unit: 'kg', category: 'Nguyên liệu', minOrder: 5, available: 150 },
-  { id: '2', name: 'Cánh gà ướp sẵn', description: 'Cánh gà tẩm ướp gia vị đặc biệt', price: 120000, unit: 'kg', category: 'Bán thành phẩm', minOrder: 3, available: 80 },
-  { id: '3', name: 'Bột chiên giòn', description: 'Bột tẩm chiên công thức đặc biệt', price: 45000, unit: 'kg', category: 'Nguyên liệu', minOrder: 2, available: 200 },
-  { id: '4', name: 'Khoai tây cắt sẵn', description: 'Khoai tây đông lạnh cắt sợi', price: 35000, unit: 'kg', category: 'Bán thành phẩm', minOrder: 5, available: 100 },
-  { id: '5', name: 'Nước sốt cay', description: 'Sốt cay đặc biệt đóng chai', price: 65000, unit: 'lít', category: 'Bán thành phẩm', minOrder: 2, available: 50 },
-  { id: '6', name: 'Coca Cola', description: 'Lon 330ml - Thùng 24 lon', price: 180000, unit: 'thùng', category: 'Đồ uống', minOrder: 1, available: 300 },
-  { id: '7', name: 'Hộp đựng thức ăn', description: 'Hộp giấy size M - 100 cái/gói', price: 120000, unit: 'gói', category: 'Đóng gói', minOrder: 2, available: 500 },
-  { id: '8', name: 'Gà rán đông lạnh', description: 'Gà rán sơ chế, chỉ cần chiên', price: 150000, unit: 'kg', category: 'Bán thành phẩm', minOrder: 5, available: 60 },
-];
-
-interface OrderItem {
-  id: string;
-  name: string;
-  price: number;
-  unit: string;
-  quantity: number;
-  minOrder: number;
-}
-
-export default function CreateSupplyOrderScreen() {
+/**
+ * Trang tạo đơn: chỉ chọn món (thêm giỏ). Không chọn ngày/giờ, không gọi API tạo đơn.
+ * "View Cart" → chuyển sang orders/cart để chọn ngày/giờ và xác nhận (API gọi ở đó).
+ */
+export default function CreateOrderScreen() {
   const router = useRouter();
-  const [activeCategory, setActiveCategory] = useState('Tất cả');
-  const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
+  const insets = useSafeAreaInsets();
+  const { items, addItem, updateQuantity, removeItem } = useStoreOrder();
+  const [catalog, setCatalog] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [note, setNote] = useState('');
-  const [selectedDeliveryDate, setSelectedDeliveryDate] = useState('Ngày mai');
 
-  const deliveryOptions = ['Hôm nay', 'Ngày mai', 'Trong 2 ngày', 'Trong 3 ngày'];
+  const categories = ["Bakery", "Spring onions", "Bananas", "Pizza", "Cake"];
 
-  const addToOrder = (product: typeof centralKitchenProducts[0]) => {
-    setOrderItems(prev => {
-      const existing = prev.find(item => item.id === product.id);
-      if (existing) {
-        return prev.map(item =>
-          item.id === product.id
-            ? { ...item, quantity: item.quantity + product.minOrder }
-            : item
-        );
-      }
-      return [...prev, {
-        id: product.id,
-        name: product.name,
-        price: product.price,
-        unit: product.unit,
-        quantity: product.minOrder,
-        minOrder: product.minOrder,
-      }];
-    });
-  };
+  useEffect(() => { fetchCatalog(); }, []);
 
-  const updateQuantity = (productId: string, delta: number) => {
-    setOrderItems(prev => {
-      return prev.map(item => {
-        if (item.id === productId) {
-          const newQty = item.quantity + delta;
-          if (newQty < item.minOrder) return null as any;
-          return { ...item, quantity: newQty };
-        }
-        return item;
-      }).filter(Boolean);
-    });
-  };
-
-  const removeItem = (productId: string) => {
-    setOrderItems(prev => prev.filter(item => item.id !== productId));
-  };
-
-  const getItemQuantity = (productId: string) => {
-    return orderItems.find(item => item.id === productId)?.quantity || 0;
-  };
-
-  const totalItems = orderItems.reduce((sum, item) => sum + item.quantity, 0);
-  const totalPrice = orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-
-  const filteredProducts = centralKitchenProducts
-    .filter(p => activeCategory === 'Tất cả' || p.category === activeCategory)
-    .filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
-
-  const handleSubmitOrder = () => {
-    if (orderItems.length === 0) {
-      Alert.alert('Thông báo', 'Vui lòng chọn ít nhất một sản phẩm');
-      return;
+  const fetchCatalog = async () => {
+    setLoading(true);
+    try {
+      const data = await useOrder.getCatalog();
+      // Cast to Product[] assuming API returns imageUrl etc.
+      setCatalog(data as unknown as Product[]);
+    } catch (error) {
+      handleErrorApi({ error });
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
-    Alert.alert(
-      'Xác nhận đơn hàng',
-      `Bạn có chắc muốn gửi đơn đặt hàng với ${orderItems.length} sản phẩm?\nTổng giá trị: ${formatPrice(totalPrice)}`,
-      [
-        { text: 'Hủy', style: 'cancel' },
-        {
-          text: 'Gửi đơn',
-          onPress: () => {
-            Alert.alert('Thành công', 'Đơn đặt hàng đã được gửi đến Bếp trung tâm!');
-            router.back();
-          }
-        },
-      ]
-    );
   };
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
-  };
+  const filteredCatalog = catalog.filter(p =>
+    p.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
-    <View style={styles.container}>
-      {/* <Header
-        title="Đặt hàng từ Bếp TT"
-        subtitle="Tạo đơn đặt nguyên liệu"
-        showBack
-        onBack={() => router.back()}
-      /> */}
+    <View style={[styles.container, { paddingTop: insets.top }]}>
+      {/* Header Section */}
+      <View style={styles.headerBackground}>
+        <View style={styles.topActions}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.circleIcon}>
+            <Ionicons name="close" size={28} color="#000" />
+          </TouchableOpacity>
+          <View style={styles.topRightIcons}>
+            {/* Avatar: Using a user icon for now as specific avatar URL isn't in User type */}
+            <View style={styles.avatarContainer}>
+              <Ionicons name="person" size={20} color="#666" />
+            </View>
+          </View>
+        </View>
 
-      {/* Search Bar */}
-      <View style={styles.searchContainer}>
         <View style={styles.searchBar}>
-          <Ionicons name="search" size={20} color={COLORS.textMuted} />
+          <Ionicons name="search" size={20} color="#999" />
           <TextInput
             style={styles.searchInput}
-            placeholder="Tìm kiếm nguyên liệu..."
-            placeholderTextColor={COLORS.textMuted}
+            placeholder="I want to buy..."
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
-          {searchQuery.length > 0 && (
-            <TouchableOpacity onPress={() => setSearchQuery('')}>
-              <Ionicons name="close-circle" size={20} color={COLORS.textMuted} />
-            </TouchableOpacity>
-          )}
         </View>
-      </View>
 
-      {/* Delivery Date Selection */}
-      <View style={styles.deliverySection}>
-        <Text style={styles.deliveryLabel}>Ngày giao hàng mong muốn:</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View style={styles.deliveryOptions}>
-            {deliveryOptions.map((option) => (
-              <TouchableOpacity
-                key={option}
-                style={[
-                  styles.deliveryOption,
-                  selectedDeliveryDate === option && styles.deliveryOptionActive,
-                ]}
-                onPress={() => setSelectedDeliveryDate(option)}
-              >
-                <Text
-                  style={[
-                    styles.deliveryOptionText,
-                    selectedDeliveryDate === option && styles.deliveryOptionTextActive,
-                  ]}
-                >
-                  {option}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tagScroll}>
+          {categories.map((cat, i) => (
+            <TouchableOpacity key={i} style={styles.tag}><Text style={styles.tagText}>{cat}</Text></TouchableOpacity>
+          ))}
         </ScrollView>
       </View>
 
-      {/* Categories */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.categoriesScroll}
-        contentContainerStyle={styles.categoriesContent}
-      >
-        {categories.map((cat) => (
-          <TouchableOpacity
-            key={cat}
-            style={[
-              styles.categoryTab,
-              activeCategory === cat && styles.categoryTabActive,
-            ]}
-            onPress={() => setActiveCategory(cat)}
+      {/* Product List */}
+      <View style={styles.whiteCardContainer}>
+        <View style={styles.whiteCard}>
+          <View style={styles.cardHeader}>
+            <Text style={styles.cardTitle}>Shopping list</Text>
+          </View>
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={fetchCatalog} />}
+            contentContainerStyle={{ paddingBottom: 100 + insets.bottom }} // Extra padding for floating cart + safe area
           >
-            <Text
-              style={[
-                styles.categoryText,
-                activeCategory === cat && styles.categoryTextActive,
-              ]}
-            >
-              {cat}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+            {loading && <LoadingSpinner size={28} color={COLORS.primary} style={{ marginTop: 20 }} />}
+            {filteredCatalog.map((product) => {
+              const inCart = items.find(i => i.id === product.id);
+              return (
+                <View key={product.id} style={styles.productItem}>
+                  {/* Product Image */}
+                  <View style={styles.imageContainer}>
+                    {product.imageUrl ? (
+                      <Image source={{ uri: product.imageUrl }} style={styles.productImage} resizeMode="cover" />
+                    ) : (
+                      <View style={[styles.productImage, { backgroundColor: '#EEE', justifyContent: 'center', alignItems: 'center' }]}>
+                        <Ionicons name="image-outline" size={24} color="#CCC" />
+                      </View>
+                    )}
+                  </View>
 
-      {/* Products List */}
-      <ScrollView
-        style={styles.productsList}
-        contentContainerStyle={styles.productsContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {filteredProducts.map((product) => {
-          const quantity = getItemQuantity(product.id);
-          const isInCart = quantity > 0;
-          return (
-            <Card key={product.id} style={[styles.productCard, isInCart && styles.productCardSelected]}>
-              <View style={styles.productHeader}>
-                <View style={styles.productIcon}>
-                  <Ionicons
-                    name={
-                      product.category === 'Nguyên liệu' ? 'leaf' :
-                        product.category === 'Bán thành phẩm' ? 'restaurant' :
-                          product.category === 'Đồ uống' ? 'water' : 'cube'
-                    }
-                    size={24}
-                    color={COLORS.primary}
-                  />
-                </View>
-                <View style={styles.productInfo}>
-                  <Text style={styles.productName}>{product.name}</Text>
-                  <Text style={styles.productDesc} numberOfLines={1}>{product.description}</Text>
-                  <View style={styles.productMeta}>
-                    <Text style={styles.productPrice}>{formatPrice(product.price)}/{product.unit}</Text>
-                    <Text style={styles.productStock}>Tồn: {product.available} {product.unit}</Text>
+                  {/* Info */}
+                  <View style={styles.productDetails}>
+                    <Text style={styles.productName}>{product.name}</Text>
+                    <Text style={styles.productSub}>{product.unit || '1pcs'}</Text>
+                  </View>
+
+                  {/* Quantity Controls */}
+                  <View style={styles.quantityContainer}>
+                    <TouchableOpacity
+                      onPress={() => inCart && (inCart.quantity > 1 ? updateQuantity(product.id, inCart.quantity - 1) : removeItem(product.id))}
+                      style={styles.qtyBtn}
+                    >
+                      <Ionicons name="remove" size={18} color="#555" />
+                    </TouchableOpacity>
+
+                    <Text style={styles.qtyText}>{inCart?.quantity || 0}</Text>
+
+                    <TouchableOpacity
+                      onPress={() => inCart ? updateQuantity(product.id, inCart.quantity + 1) : addItem({
+                        id: product.id,
+                        quantity: 1,
+                        name: product.name,
+                        unit: product.unit,
+                        image_url: product.image_url
+                      })}
+                      style={[styles.qtyBtn, { backgroundColor: COLORS.primary }]}
+                    >
+                      <Ionicons name="add" size={18} color="#FFF" />
+                    </TouchableOpacity>
                   </View>
                 </View>
+              );
+            })}
+          </ScrollView>
+        </View>
+      </View>
+
+      {items.length > 0 && (
+        <View style={[styles.floatingCart, { bottom: 30 + insets.bottom }]}>
+          <TouchableOpacity
+            style={styles.cartContent}
+            onPress={() => router.push('/(franchise-staff)/orders/cart' as any)}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <View style={styles.cartIconBadge}>
+                <Text style={{ color: COLORS.primary, fontWeight: 'bold' }}>{items.length}</Text>
               </View>
-
-              <View style={styles.productFooter}>
-                <Text style={styles.minOrderText}>Đặt tối thiểu: {product.minOrder} {product.unit}</Text>
-                <View style={styles.quantityControls}>
-                  {isInCart ? (
-                    <>
-                      <TouchableOpacity
-                        style={styles.qtyButton}
-                        onPress={() => updateQuantity(product.id, -1)}
-                      >
-                        <Ionicons name="remove" size={18} color={COLORS.primary} />
-                      </TouchableOpacity>
-                      <Text style={styles.qtyText}>{quantity}</Text>
-                      <TouchableOpacity
-                        style={[styles.qtyButton, styles.qtyButtonFilled]}
-                        onPress={() => updateQuantity(product.id, 1)}
-                      >
-                        <Ionicons name="add" size={18} color={COLORS.textLight} />
-                      </TouchableOpacity>
-                    </>
-                  ) : (
-                    <TouchableOpacity
-                      style={[styles.addButton]}
-                      onPress={() => addToOrder(product)}
-                    >
-                      <Ionicons name="add" size={16} color={COLORS.textLight} />
-                      <Text style={styles.addButtonText}>Thêm</Text>
-                    </TouchableOpacity>
-                  )}
-                </View>
-              </View>
-            </Card>
-          );
-        })}
-      </ScrollView>
-
-      {/* Order Summary */}
-      {orderItems.length > 0 && (
-        <View style={styles.orderSummary}>
-          <View style={styles.orderSummaryTop}>
-            <View style={styles.orderSummaryInfo}>
-              <Text style={styles.orderSummaryLabel}>Sản phẩm</Text>
-              <Text style={styles.orderSummaryCount}>{orderItems.length} loại</Text>
+              <Text style={styles.viewCartText}> View Cart</Text>
             </View>
-            <View style={styles.orderSummaryInfo}>
-              <Text style={styles.orderSummaryLabel}>Tổng tiền</Text>
-              <Text style={styles.orderSummaryTotal}>{formatPrice(totalPrice)}</Text>
-            </View>
-          </View>
-
-          {/* Note Input */}
-          <TextInput
-            style={styles.noteInput}
-            placeholder="Ghi chú cho đơn hàng (tùy chọn)..."
-            placeholderTextColor={COLORS.textMuted}
-            value={note}
-            onChangeText={setNote}
-            multiline
-          />
-
-          <Button
-            title="Gửi đơn đặt hàng"
-            icon="send"
-            onPress={handleSubmitOrder}
-            fullWidth
-          />
+            <Ionicons name="chevron-forward" size={20} color="#FFF" />
+          </TouchableOpacity>
         </View>
       )}
     </View>
@@ -310,250 +163,32 @@ export default function CreateSupplyOrderScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  // Content spacing after header
-  contentAfterHeader: {
-    paddingTop: SPACING.md,
-  },
-  // Search
-  searchContainer: {
-    paddingHorizontal: SPACING.base,
-    paddingVertical: SPACING.sm,
-    backgroundColor: COLORS.cardBackground,
-  },
-  searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.backgroundSecondary,
-    borderRadius: RADIUS.md,
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
-    gap: SPACING.sm,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: TYPOGRAPHY.fontSize.base,
-    color: COLORS.textPrimary,
-  },
-  // Delivery
-  deliverySection: {
-    paddingHorizontal: SPACING.base,
-    paddingVertical: SPACING.sm,
-    backgroundColor: COLORS.cardBackground,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-  },
-  deliveryLabel: {
-    fontSize: TYPOGRAPHY.fontSize.sm,
-    color: COLORS.textMuted,
-    marginBottom: SPACING.sm,
-  },
-  deliveryOptions: {
-    flexDirection: 'row',
-    gap: SPACING.sm,
-  },
-  deliveryOption: {
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
-    borderRadius: RADIUS.full,
-    backgroundColor: COLORS.backgroundSecondary,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  deliveryOptionActive: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
-  },
-  deliveryOptionText: {
-    fontSize: TYPOGRAPHY.fontSize.sm,
-    color: COLORS.textSecondary,
-  },
-  deliveryOptionTextActive: {
-    color: COLORS.textLight,
-    fontWeight: TYPOGRAPHY.fontWeight.medium,
-  },
-  // Categories
-  categoriesScroll: {
-    maxHeight: 50,
-  },
-  categoriesContent: {
-    paddingHorizontal: SPACING.base,
-    paddingVertical: SPACING.sm,
-    gap: SPACING.sm,
-  },
-  categoryTab: {
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.sm,
-    borderRadius: RADIUS.full,
-    backgroundColor: COLORS.cardBackground,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  categoryTabActive: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
-  },
-  categoryText: {
-    fontSize: TYPOGRAPHY.fontSize.sm,
-    color: COLORS.textSecondary,
-    fontWeight: TYPOGRAPHY.fontWeight.medium,
-  },
-  categoryTextActive: {
-    color: COLORS.textLight,
-  },
-  // Products
-  productsList: {
-    flex: 1,
-  },
-  productsContent: {
-    padding: SPACING.base,
-    paddingBottom: 200,
-  },
-  productCard: {
-    marginBottom: SPACING.md,
-  },
-  productCardSelected: {
-    borderWidth: 2,
-    borderColor: COLORS.primary,
-  },
-  productHeader: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: SPACING.sm,
-  },
-  productIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: RADIUS.md,
-    backgroundColor: COLORS.primaryLight,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: SPACING.md,
-  },
-  productInfo: {
-    flex: 1,
-  },
-  productName: {
-    fontSize: TYPOGRAPHY.fontSize.base,
-    fontWeight: TYPOGRAPHY.fontWeight.semibold,
-    color: COLORS.textPrimary,
-    marginBottom: 2,
-  },
-  productDesc: {
-    fontSize: TYPOGRAPHY.fontSize.xs,
-    color: COLORS.textMuted,
-    marginBottom: SPACING.xs,
-  },
-  productMeta: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  productPrice: {
-    fontSize: TYPOGRAPHY.fontSize.sm,
-    fontWeight: TYPOGRAPHY.fontWeight.bold,
-    color: COLORS.primary,
-  },
-  productStock: {
-    fontSize: TYPOGRAPHY.fontSize.xs,
-    color: COLORS.textMuted,
-  },
-  productFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: SPACING.sm,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
-  },
-  minOrderText: {
-    fontSize: TYPOGRAPHY.fontSize.xs,
-    color: COLORS.textMuted,
-  },
-  // Quantity Controls
-  quantityControls: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: SPACING.sm,
-  },
-  qtyButton: {
-    width: 32,
-    height: 32,
-    borderRadius: RADIUS.sm,
-    borderWidth: 1,
-    borderColor: COLORS.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  qtyButtonFilled: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
-  },
-  qtyText: {
-    fontSize: TYPOGRAPHY.fontSize.base,
-    fontWeight: TYPOGRAPHY.fontWeight.semibold,
-    color: COLORS.textPrimary,
-    minWidth: 30,
-    textAlign: 'center',
-  },
-  addButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
-    borderRadius: RADIUS.sm,
-    gap: SPACING.xs,
-  },
-  addButtonText: {
-    fontSize: TYPOGRAPHY.fontSize.sm,
-    color: COLORS.textLight,
-    fontWeight: TYPOGRAPHY.fontWeight.medium,
-  },
-  // Order Summary
-  orderSummary: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: SPACING.base,
-    backgroundColor: COLORS.cardBackground,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
-    ...SHADOWS.lg,
-  },
-  orderSummaryTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: SPACING.md,
-  },
-  orderSummaryInfo: {
-    alignItems: 'center',
-  },
-  orderSummaryLabel: {
-    fontSize: TYPOGRAPHY.fontSize.xs,
-    color: COLORS.textMuted,
-  },
-  orderSummaryCount: {
-    fontSize: TYPOGRAPHY.fontSize.lg,
-    fontWeight: TYPOGRAPHY.fontWeight.bold,
-    color: COLORS.textPrimary,
-  },
-  orderSummaryTotal: {
-    fontSize: TYPOGRAPHY.fontSize.lg,
-    fontWeight: TYPOGRAPHY.fontWeight.bold,
-    color: COLORS.primary,
-  },
-  noteInput: {
-    backgroundColor: COLORS.backgroundSecondary,
-    borderRadius: RADIUS.md,
-    padding: SPACING.md,
-    marginBottom: SPACING.md,
-    fontSize: TYPOGRAPHY.fontSize.sm,
-    color: COLORS.textPrimary,
-    minHeight: 40,
-  },
+  container: { flex: 1, backgroundColor: COLORS.primary },
+  headerBackground: { padding: 20, paddingTop: 10, paddingBottom: 20 },
+  topActions: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 },
+  circleIcon: { backgroundColor: '#FFF', width: 45, height: 45, borderRadius: 15, justifyContent: 'center', alignItems: 'center' },
+  topRightIcons: { flexDirection: 'row', gap: 10 },
+  avatarContainer: { width: 45, height: 45, borderRadius: 22.5, backgroundColor: '#FFF', justifyContent: 'center', alignItems: 'center' },
+  searchBar: { backgroundColor: '#FFF', borderRadius: 25, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 15, height: 50 },
+  searchInput: { flex: 1, marginLeft: 10, fontSize: 16 },
+  tagScroll: { marginTop: 15 },
+  tag: { backgroundColor: 'rgba(255,255,255,0.3)', paddingHorizontal: 15, paddingVertical: 8, borderRadius: 20, marginRight: 8 },
+  tagText: { fontWeight: '600', color: '#FFF' },
+  whiteCardContainer: { flex: 1, backgroundColor: '#FFF', borderTopLeftRadius: 35, borderTopRightRadius: 35, overflow: 'hidden' },
+  whiteCard: { flex: 1, padding: 20, paddingBottom: 0 },
+  cardHeader: { marginBottom: 15 },
+  cardTitle: { fontSize: 18, fontWeight: 'bold' },
+  productItem: { flexDirection: 'row', alignItems: 'center', marginBottom: 20, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: '#F0F0F0' },
+  imageContainer: { marginRight: 15 },
+  productImage: { width: 60, height: 60, borderRadius: 10 },
+  productDetails: { flex: 1 },
+  productName: { fontSize: 16, fontWeight: 'bold' },
+  productSub: { color: '#888', marginTop: 2 },
+  quantityContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F5F5F5', borderRadius: 25, padding: 4 },
+  qtyBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#FFF', justifyContent: 'center', alignItems: 'center', shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 },
+  qtyText: { marginHorizontal: 12, fontWeight: 'bold', minWidth: 20, textAlign: 'center' },
+  floatingCart: { position: 'absolute', left: 20, right: 20, backgroundColor: '#000', borderRadius: 30, height: 60, justifyContent: 'center', paddingHorizontal: 20, shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 4.65, elevation: 8 },
+  cartContent: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  cartIconBadge: { backgroundColor: '#FFF', width: 24, height: 24, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginRight: 10 },
+  viewCartText: { color: '#FFF', fontWeight: 'bold', fontSize: 16 },
 });

@@ -5,9 +5,9 @@ import {
     StyleSheet,
     ViewStyle,
     TextStyle,
-    ActivityIndicator,
     View,
 } from 'react-native';
+import { LoadingSpinner } from './LoadingSpinner';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, RADIUS, SHADOWS, SPACING, SIZES, TYPOGRAPHY } from '@/constants/theme';
 
@@ -117,7 +117,7 @@ export function Button({
 
     const renderContent = () => {
         if (loading) {
-            return <ActivityIndicator color={variantStyles.iconColor} size="small" />;
+            return <LoadingSpinner size={20} color={variantStyles.iconColor} />;
         }
 
         if (children) {

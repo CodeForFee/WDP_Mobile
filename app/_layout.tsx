@@ -1,7 +1,7 @@
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
-import { AuthProvider, useAuthContext } from '@/lib/authContext';
+import { AuthProvider, useAuthContext } from '@/contexts/authContext';
 import { Loading } from '@/components/common';
 import { useEffect } from 'react';
 

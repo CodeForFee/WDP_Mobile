@@ -1,8 +1,9 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, TYPOGRAPHY, SPACING } from '@/constants/theme';
+import { LoadingSpinner } from '@/components/common';
 
 export default function SplashScreen() {
     const router = useRouter();
@@ -34,13 +35,9 @@ export default function SplashScreen() {
                     <Text style={styles.tagline}>FRANCHISE OPERATIONS</Text>
                 </View>
 
-                {/* Loading */}
+                {/* Loading - dùng loading.svg cho toàn hệ thống */}
                 <View style={styles.loadingContainer}>
-                    <View style={styles.loadingDots}>
-                        <View style={[styles.dot, styles.dotActive]} />
-                        <View style={[styles.dot, styles.dotActive]} />
-                        <View style={[styles.dot, styles.dotActive]} />
-                    </View>
+                    <LoadingSpinner size={40} color={COLORS.primary} />
                 </View>
             </View>
 
