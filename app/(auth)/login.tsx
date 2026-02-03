@@ -17,25 +17,25 @@ import { COLORS, TYPOGRAPHY, SPACING, RADIUS } from '@/constants/theme';
 import { Input, Button } from '@/components/common';
 import { useAuthContext } from '@/contexts/authContext';
 import { authSchema, LoginInput } from '@/schemas/authSchema';
-import {   handleErrorApi } from '@/lib/errors';
+import { handleErrorApi } from '@/lib/errors';
 
 export default function LoginScreen() {
   const router = useRouter();
   const { login } = useAuthContext();
   const [loading, setLoading] = useState(false);
 
-const {
-  control,
-  handleSubmit,
-  setError,
-  formState: { errors },
-} = useForm<LoginInput>({
-  resolver: zodResolver(authSchema), 
-  defaultValues: {
-    email: 'admin@gmail.com',
-    password: 'pass123456789',
-  },
-});
+  const {
+    control,
+    handleSubmit,
+    setError,
+    formState: { errors },
+  } = useForm<LoginInput>({
+    resolver: zodResolver(authSchema),
+    defaultValues: {
+      email: 'jonnytran.working@gmail.com',
+      password: 'pass123456789',
+    },
+  });
 
   const onSubmit = async (values: LoginInput) => {
     try {
@@ -92,9 +92,9 @@ const {
             />
           )}
         />
-          <Link href="/forgot-password" style={styles.forgotText}>
-            Forgot Password?
-          </Link>
+        <Link href="/forgot-password" style={styles.forgotText}>
+          Forgot Password?
+        </Link>
         <Button
           title="Sign In"
           loading={loading}
@@ -186,9 +186,9 @@ const styles = StyleSheet.create({
     fontSize: TYPOGRAPHY.fontSize.sm,
     color: COLORS.primary,
     fontWeight: TYPOGRAPHY.fontWeight.semibold,
-     // text end
-     textAlign: 'right',
-     marginBottom: SPACING.sm
+    // text end
+    textAlign: 'right',
+    marginBottom: SPACING.sm
   },
   signInButton: {
     marginBottom: SPACING.xl,
@@ -295,5 +295,5 @@ const styles = StyleSheet.create({
     fontSize: TYPOGRAPHY.fontSize.sm,
     color: COLORS.textMuted,
   },
-  
+
 });

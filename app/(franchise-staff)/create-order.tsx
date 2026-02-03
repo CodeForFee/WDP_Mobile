@@ -1,3 +1,3 @@
-import CreateSupplyOrderScreen from './orders/create';
+// import CreateSupplyOrderScreen from './orders/create';
 
-export default CreateSupplyOrderScreen;
+// export default CreateSupplyOrderScreen;
