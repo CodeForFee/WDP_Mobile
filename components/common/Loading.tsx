@@ -1,10 +1,15 @@
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { theme } from '@/constants/theme';
+import { LoadingSpinner } from './LoadingSpinner';
 
+/**
+ * Màn hình loading toàn màn (dùng khi check auth, v.v.).
+ * Dùng LoadingSpinner từ assets/images/loading.svg cho toàn hệ thống.
+ */
 export const Loading = () => {
   return (
     <View style={styles.container}>
-      <ActivityIndicator size="large" color={theme.colors.primary} />
+      <LoadingSpinner size={48} color={theme.colors.primary} />
     </View>
   );
 };

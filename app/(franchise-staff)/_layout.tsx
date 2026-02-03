@@ -51,10 +51,27 @@ export default function FranchiseStackLayout() {
       />
 
       <Stack.Screen
+        name="orders/cart"
+        options={{
+          title: 'Confirm Order',
+          headerShown: false,
+          headerLeft: () => <BackButton />
+        }}
+      />
+
+      <Stack.Screen
+        name="orders/success"
+        options={{
+          headerShown: false,
+          gestureEnabled: false // Prevent swipe back
+        }}
+      />
+
+      <Stack.Screen
         name="orders/create"
         options={{
           title: 'New Order',
-          headerShown: true,
+          headerShown: false,
           headerLeft: () => <BackButton />
         }}
       />

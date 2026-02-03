@@ -48,8 +48,7 @@ export default function FranchiseTabsLayout() {
                 name="inventory"
                 options={{
                     title: 'Inventory',
-                    headerShown: true,
-                    headerLeft: () => <BackButton />
+                    headerShown: false,
                 }}
             />
 
@@ -85,9 +84,7 @@ export default function FranchiseTabsLayout() {
 
 // Custom Tab Bar Component
 function CustomTabBar({ state, navigation }: any) {
-    // Hide bottom nav if not on main tabs
-    // In this layout, ALL routes are main tabs.
-    // But strictly we only have these 5.
+    const router = useRouter();
 
     return (
         <View style={styles.container}>
@@ -112,7 +109,7 @@ function CustomTabBar({ state, navigation }: any) {
                     onPress={() => navigation.navigate('inventory')}
                 />
 
-                {/* Center Floating Button */}
+                {/* Center: Mở danh sách đơn hàng đã tạo (history) */}
                 <View style={styles.centerButtonContainer}>
                     <TouchableOpacity
                         style={styles.centerButton}

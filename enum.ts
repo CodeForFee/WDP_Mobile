@@ -7,3 +7,12 @@ export enum HttpErrorCode {
   UNPROCESSABLE_ENTITY = 422,
   INTERNAL_SERVER_ERROR = 500,
 }
+
+
+export enum OrderStatus {
+  PENDING = "pending",
+  APPROVED = "approved",
+  REJECTED = "rejected",
+  DELIVERED = "delivered",
+  CANCELLED = "cancelled",
+}

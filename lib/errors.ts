@@ -55,7 +55,11 @@ export const handleErrorApi = ({
 
 
   if (error instanceof HttpError) {
-    Alert.alert("Lỗi", error.message);
+    const is500 = error.payload?.statusCode === 500;
+    const message = is500
+      ? "Lỗi máy chủ. Vui lòng thử lại sau hoặc liên hệ hỗ trợ."
+      : error.message;
+    Alert.alert("Lỗi", message);
     return;
   }
 

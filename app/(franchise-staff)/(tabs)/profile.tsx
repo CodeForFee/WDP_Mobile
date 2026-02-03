@@ -1,16 +1,20 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Image,
 } from 'react-native';
+import { Card, Button, LoadingSpinner } from '@/components/common';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS } from '@/constants/theme';
-import { Card, Button } from '@/components/common';
+import { useSessionStore } from '@/stores/storeSession';
+import { useAuth } from '@/hooks/useAuth';
+import { User } from '@/type';
+import { handleErrorApi } from '@/lib/errors';
+import { useAuthContext } from '@/contexts/authContext';
 
 const menuItems = [
   { id: '1', icon: 'person-outline', label: 'Account Settings', route: '' },
@@ -22,10 +26,45 @@ const menuItems = [
 
 export default function ProfileScreen() {
   const router = useRouter();
+  const session = useSessionStore();
+  const { logout: logoutContext } = useAuthContext();
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const handleLogout = () => {
-    router.replace('/(auth)/login');
+  useEffect(() => {
+    fetchUserProfile();
+  }, []);
+
+  const fetchUserProfile = async () => {
+    setLoading(true);
+    try {
+      const userData = await useAuth.me();
+      setUser(userData);
+    } catch (error) {
+      handleErrorApi({ error });
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const handleLogout = async () => {
+    await logoutContext();
+  };
+
+  // Get display name: username or email fallback
+  const displayName = user?.username || session.user?.email || 'User';
+  const displayRole = user?.role || session.user?.role || 'Staff';
+  const displayStore = session.user?.storeId ? `Store #${session.user.storeId}` : '';
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <LoadingSpinner size={48} color={COLORS.primary} />
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -44,9 +83,14 @@ export default function ProfileScreen() {
               <Ionicons name="camera" size={16} color={COLORS.textLight} />
             </TouchableOpacity>
           </View>
-          <Text style={styles.name}>John Smith</Text>
-          <Text style={styles.role}>Franchise Staff</Text>
-          <Text style={styles.store}>Store #247 • Downtown Plaza</Text>
+          <Text style={styles.name}>{displayName}</Text>
+          <Text style={styles.role}>{displayRole}</Text>
+          {displayStore && (
+            <Text style={styles.store}>{displayStore}</Text>
+          )}
+          {user?.email && (
+            <Text style={styles.email}>{user.email}</Text>
+          )}
         </View>
 
         {/* Stats */}
@@ -157,6 +201,17 @@ const styles = StyleSheet.create({
   store: {
     fontSize: TYPOGRAPHY.fontSize.sm,
     color: COLORS.textMuted,
+    marginTop: SPACING.xs,
+  },
+  email: {
+    fontSize: TYPOGRAPHY.fontSize.sm,
+    color: COLORS.textMuted,
+    marginTop: SPACING.xs,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   // Stats
   statsContainer: {
