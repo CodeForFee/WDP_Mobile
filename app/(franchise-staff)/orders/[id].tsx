@@ -1,446 +1,241 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
-import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS } from '@/constants/theme';
-import { Card, LoadingSpinner } from '@/components/common';
+import { COLORS } from '@/constants/theme';
+import { LoadingSpinner, Button } from '@/components/common';
 import { useOrder } from '@/hooks/useOrder';
 import { OrderDetail } from '@/type';
 import { OrderStatus } from '@/enum';
 import { handleErrorApi } from '@/lib/errors';
+
+// Màu banner theo status
+const getStatusBannerColor = (status: string) => {
+    switch (status) {
+        case OrderStatus.PENDING:
+            return { bg: '#FEF3C7', text: '#D97706' }; // amber
+        case OrderStatus.APPROVED:
+            return { bg: '#89A54D', text: '#FFF' }; // green
+        case OrderStatus.REJECTED:
+            return { bg: '#FEE2E2', text: '#DC2626' }; // red
+        case OrderStatus.DELIVERED:
+            return { bg: '#D1FAE5', text: '#059669' }; // emerald
+        case OrderStatus.CANCELLED:
+            return { bg: '#F3F4F6', text: '#6B7280' }; // gray
+        default:
+            return { bg: '#89A54D', text: '#FFF' };
+    }
+};
+
+// Hiệu ứng giấy xé (Zigzag) - Tối ưu số lượng Triangle
+const ZigzagDivider = () => (
+    <View style={styles.zigzagContainer}>
+        {[...Array(25)].map((_, i) => (
+            <View key={i} style={styles.zigzagTriangle} />
+        ))}
+    </View>
+);
 
 export default function OrderDetailsScreen() {
     const { id } = useLocalSearchParams();
     const router = useRouter();
     const [order, setOrder] = useState<OrderDetail | null>(null);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        if (id && typeof id === 'string') {
-            fetchOrderDetails();
-        }
+        if (id) fetchOrderDetails();
     }, [id]);
 
     const fetchOrderDetails = async () => {
-        if (!id || typeof id !== 'string') {
-            console.log('[ORDER DETAIL] Invalid ID:', id);
-            setError("ID đơn hàng không hợp lệ");
-            setLoading(false);
-            return;
-        }
-        setLoading(true);
-        setError(null);
-        console.log('[ORDER DETAIL] Fetching order:', id);
         try {
-            const data = await useOrder.getOrderById(id);
-            console.log('[ORDER DETAIL] Success:', data);
+            const data = await useOrder.getOrderById(id as string);
             setOrder(data);
-        } catch (error: any) {
-            console.error('[ORDER DETAIL] Error:', error);
-            const errorMsg = error?.payload?.message || error?.message || "Không thể tải chi tiết đơn hàng";
-            setError(errorMsg);
-            handleErrorApi({ error });
+        } catch (error) {
+            console.error(error);
         } finally {
             setLoading(false);
         }
     };
 
-    const handleCancelOrder = async () => {
-        if (!order) return;
-        Alert.alert("Confirm", "Are you sure you want to cancel this order?", [
-            { text: "No", style: 'cancel' },
+    const handleCancelOrder = () => {
+        Alert.alert('Xác nhận', 'Bạn có chắc muốn hủy đơn hàng này?', [
+            { text: 'Không', style: 'cancel' },
             {
-                text: "Yes", style: 'destructive', onPress: async () => {
+                text: 'Có, hủy đơn',
+                style: 'destructive',
+                onPress: async () => {
                     setLoading(true);
                     try {
-                        await useOrder.cancelOrder(order.id);
-                        Alert.alert("Success", "Order cancelled", [
-                            { text: "OK", onPress: () => router.back() }
+                        await useOrder.cancelOrder(order!.id);
+                        Alert.alert('Thành công', 'Đã hủy đơn hàng', [
+                            { text: 'OK', onPress: () => router.back() }
                         ]);
                     } catch (error) {
                         handleErrorApi({ error });
                     } finally {
                         setLoading(false);
                     }
-                }
-            }
+                },
+            },
         ]);
     };
 
-    if (loading) {
-        return (
-            <SafeAreaView style={styles.container} edges={['top']}>
-                <View style={styles.loadingContainer}>
-                    <LoadingSpinner size={48} color={COLORS.primary} />
-                    <Text style={styles.loadingText}>Đang tải chi tiết đơn hàng...</Text>
-                </View>
-            </SafeAreaView>
-        );
-    }
-
-    if (error || !order) {
-        return (
-            <SafeAreaView style={styles.container} edges={['top']}>
-                <View style={styles.errorContainer}>
-                    <Ionicons name="alert-circle-outline" size={64} color={COLORS.error} />
-                    <Text style={styles.errorTitle}>Không thể tải đơn hàng</Text>
-                    <Text style={styles.errorMessage}>{error || "Đơn hàng không tồn tại"}</Text>
-                    <TouchableOpacity style={styles.retryButton} onPress={fetchOrderDetails}>
-                        <Text style={styles.retryButtonText}>Thử lại</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-                        <Text style={styles.backButtonText}>Quay lại</Text>
-                    </TouchableOpacity>
-                </View>
-            </SafeAreaView>
-        );
-    }
-
-    const getStatusColor = (status: OrderStatus) => {
-        switch (status) {
-            case OrderStatus.PENDING:
-                return { bg: '#FEF3C7', text: '#D97706' };
-            case OrderStatus.DELIVERED:
-                return { bg: '#D1FAE5', text: '#059669' };
-            default:
-                return { bg: '#F3F4F6', text: '#6B7280' };
-        }
-    };
-
-    const statusColor = getStatusColor(order.status);
+    if (loading) return <View style={styles.center}><LoadingSpinner size={40} color="#89A54D" /></View>;
+    if (!order) return null;
 
     return (
-        <SafeAreaView style={styles.container} edges={['top']}>
-            <Stack.Screen
-                options={{
-                    title: `Order #${order.id.slice(0, 8)}...`,
-                    headerShadowVisible: false,
-                    headerStyle: { backgroundColor: COLORS.background },
-                }}
-            />
-
-            <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-                {/* Header Info */}
-                <Card style={styles.headerCard}>
-                    <View style={styles.headerInfo}>
-                        <View style={styles.headerInfoItem}>
-                            <Text style={styles.label}>Order ID</Text>
-                            <Text style={styles.value}>{order.id}</Text>
-                        </View>
-                        <View style={[styles.statusBadge, { backgroundColor: statusColor.bg }]}>
-                            <Text style={[styles.statusText, { color: statusColor.text }]}>
-                                {order.status}
+        <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+            {/* Header: có safe area top nên không cao quá, không dính status bar */}
+            <View style={styles.customHeader}>
+                <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+                    <Ionicons name="arrow-back" size={24} color="#000" />
+                </TouchableOpacity>
+                <Text style={styles.headerTitle}>Order details</Text>
+                <View style={{ width: 40 }} /> 
+            </View>
+            
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+                {/* Status Banner - màu theo status */}
+                {(() => {
+                    const statusColors = getStatusBannerColor(order.status);
+                    return (
+                        <View style={[styles.statusBanner, { backgroundColor: statusColors.bg }]}>
+                            <Text style={[styles.statusLabel, { color: statusColors.text }]}>{order.status.charAt(0).toUpperCase() + order.status.slice(1)}</Text>
+                            <Text style={[styles.statusDate, { color: statusColors.text, opacity: 0.9 }]}>
+                        {new Date(order.updatedAt).toLocaleString('en-US', { 
+                            weekday: 'long', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' 
+                        })}
                             </Text>
+                        </View>
+                    );
+                })()}
+
+                {/* Receipt Card */}
+                <View style={styles.receiptMain}>
+                    <Text style={styles.orderNumber}>№{order.id.slice(0, 8).toUpperCase()}</Text>
+                    
+                    {order.items.map((item, index) => (
+                        <View key={index} style={styles.itemRow}>
+                            <Image source={{ uri: item.product?.imageUrl }} style={styles.productImg} />
+                            <Text style={styles.productInfo}>
+                                <Text style={{ fontWeight: '800' }}>{item.quantityRequested} × </Text>
+                                {item.product.name}
+                            </Text>
+                        </View>
+                    ))}
+
+                    <View style={styles.lineDivider} />
+                    <View style={styles.summaryRow}>
+                        <Text style={styles.summaryLabel}>The order items</Text>
+                        <Text style={styles.summaryValue}>{order.items.length} items</Text>
+                    </View>
+                </View>
+
+                <ZigzagDivider />
+
+                {/* Store Info Section */}
+                <View style={styles.storeSection}>
+                    <Text style={styles.sectionHeading}>STORE INFORMATION</Text>
+                    
+                    <View style={styles.infoBlock}>
+                        <View style={styles.iconBox}><Ionicons name="gift" size={18} color="#89A54D" /></View>
+                        <View>
+                            <Text style={styles.infoMainText}>{order.store.name}</Text>
+                            <Text style={styles.infoSubText}>{order.store.phone}</Text>
                         </View>
                     </View>
-                    <View style={styles.headerInfoRow}>
-                        <View style={styles.headerInfoItem}>
-                            <Ionicons name="calendar-outline" size={14} color={COLORS.textMuted} />
-                            <Text style={styles.label}>Created</Text>
-                            <Text style={styles.value}>
-                                {new Date(order.createdAt).toLocaleDateString()}
-                            </Text>
+
+                    <View style={styles.infoBlock}>
+                        <View style={[styles.iconBox, { backgroundColor: '#F1F8E9' }]}>
+                            <Ionicons name="location" size={18} color="#89A54D" />
                         </View>
-                        <View style={styles.headerInfoItem}>
-                            <Ionicons name="time-outline" size={14} color={COLORS.textMuted} />
-                            <Text style={styles.label}>Delivery Date</Text>
-                            <Text style={styles.value}>
-                                {new Date(order.deliveryDate).toLocaleDateString()}
-                            </Text>
+                        <View style={{ flex: 1 }}>
+                            <Text style={styles.infoMainText}>{order.store.address}</Text>
                         </View>
                     </View>
-                    {order.note && (
-                        <View style={styles.noteSection}>
-                            <Text style={styles.label}>Note</Text>
-                            <Text style={styles.noteText}>{order.note}</Text>
-                        </View>
-                    )}
-                </Card>
+                </View>
 
-                {/* Store Info */}
-                {order.store && (
-                    <Card style={styles.storeCard}>
-                        <Text style={styles.sectionTitle}>Store Information</Text>
-                        <View style={styles.storeInfo}>
-                            <Ionicons name="storefront-outline" size={20} color={COLORS.primary} />
-                            <View style={styles.storeDetails}>
-                                <Text style={styles.storeName}>{order.store.name}</Text>
-                                <Text style={styles.storeAddress}>{order.store.address}</Text>
-                                <Text style={styles.storeManager}>
-                                    Manager: {order.store.managerName}
-                                </Text>
-                                <Text style={styles.storePhone}>{order.store.phone}</Text>
-                            </View>
-                        </View>
-                    </Card>
-                )}
-
-                {/* Items List */}
-                <Text style={styles.sectionTitle}>Order Items</Text>
-                {order.items.map((item, index) => (
-                    <Card key={index} style={styles.itemCard}>
-                        <View style={styles.itemHeader}>
-                            <View style={styles.itemIcon}>
-                                <Ionicons name="cube-outline" size={24} color={COLORS.primary} />
-                            </View>
-                            <View style={styles.itemInfo}>
-                                <Text style={styles.itemName}>{item.product.name}</Text>
-                                <Text style={styles.itemSku}>SKU: {item.product.sku}</Text>
-                                <Text style={styles.itemUnit}>Unit: {item.product.unit}</Text>
-                            </View>
-                            <View style={styles.itemQuantity}>
-                                <Text style={styles.quantityLabel}>Requested</Text>
-                                <Text style={styles.quantityValue}>{item.quantityRequested}</Text>
-                                {item.quantityApproved && (
-                                    <>
-                                        <Text style={styles.quantityLabel}>Approved</Text>
-                                        <Text style={styles.quantityApproved}>{item.quantityApproved}</Text>
-                                    </>
-                                )}
-                            </View>
-                        </View>
-                    </Card>
-                ))}
-
-                {/* Action Buttons */}
+                {/* Cancel - chỉ khi đơn đang PENDING */}
                 {order.status === OrderStatus.PENDING && (
-                    <View style={styles.actionButtons}>
-                        <TouchableOpacity
-                            style={styles.cancelButton}
+                    <View style={styles.cancelSection}>
+                        <Button
+                            title="Hủy đơn hàng"
                             onPress={handleCancelOrder}
-                        >
-                            <Ionicons name="close-circle" size={20} color={COLORS.error} />
-                            <Text style={styles.cancelButtonText}>Cancel Order</Text>
-                        </TouchableOpacity>
+                            variant="danger"
+                            fullWidth
+                        />
                     </View>
                 )}
-
-                <View style={{ height: 20 }} />
             </ScrollView>
         </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: COLORS.background,
-    },
-    loadingContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        gap: SPACING.md,
-    },
-    loadingText: {
-        fontSize: TYPOGRAPHY.fontSize.base,
-        color: COLORS.textMuted,
-        marginTop: SPACING.sm,
-    },
-    errorContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: SPACING.xl,
-        gap: SPACING.md,
-    },
-    errorTitle: {
-        fontSize: TYPOGRAPHY.fontSize.lg,
-        fontWeight: TYPOGRAPHY.fontWeight.bold,
-        color: COLORS.textPrimary,
-        marginTop: SPACING.md,
-    },
-    errorMessage: {
-        fontSize: TYPOGRAPHY.fontSize.base,
-        color: COLORS.textMuted,
-        textAlign: 'center',
-        marginBottom: SPACING.lg,
-    },
-    retryButton: {
-        backgroundColor: COLORS.primary,
-        paddingHorizontal: SPACING.xl,
-        paddingVertical: SPACING.md,
-        borderRadius: RADIUS.md,
-        minWidth: 120,
-    },
-    retryButtonText: {
-        color: COLORS.textLight,
-        fontSize: TYPOGRAPHY.fontSize.base,
-        fontWeight: TYPOGRAPHY.fontWeight.semibold,
-        textAlign: 'center',
-    },
-    backButton: {
-        paddingHorizontal: SPACING.xl,
-        paddingVertical: SPACING.md,
-        borderRadius: RADIUS.md,
-        minWidth: 120,
-    },
-    backButtonText: {
-        color: COLORS.primary,
-        fontSize: TYPOGRAPHY.fontSize.base,
-        fontWeight: TYPOGRAPHY.fontWeight.semibold,
-        textAlign: 'center',
-    },
-    content: {
-        padding: SPACING.base,
-    },
-    headerCard: {
-        marginBottom: SPACING.md,
-    },
-    headerInfo: {
+    container: { flex: 1, backgroundColor: '#F7F8F4' },
+    center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+    customHeader: {
         flexDirection: 'row',
+        alignItems: 'center',
         justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        marginBottom: SPACING.md,
+        paddingHorizontal: 20,
+        paddingVertical: 15,
+        backgroundColor: '#F7F8F4',
     },
-    headerInfoRow: {
+    backBtn: { width: 40, height: 40, justifyContent: 'center' },
+    headerTitle: { fontSize: 22, fontWeight: '800', color: '#1A1A1A', textAlign: 'center' },
+    scrollContent: { paddingTop: 20, paddingBottom: 40 },
+    statusBanner: {
+        marginHorizontal: 16,
+        marginTop: 8,
+        marginBottom: 20,
+        padding: 24,
+        borderRadius: 28,
+    },
+    statusLabel: { color: '#FFF', fontSize: 26, fontWeight: '900' },
+    statusDate: { color: 'rgba(255,255,255,0.85)', fontSize: 14, marginTop: 4, fontWeight: '600' },
+    receiptMain: {
+        backgroundColor: '#FFF',
+        marginHorizontal: 16,
+        padding: 20,
+        borderTopLeftRadius: 28,
+        borderTopRightRadius: 28,
+    },
+    orderNumber: { fontSize: 17, fontWeight: '900', color: '#333', marginBottom: 20 },
+    itemRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 16 },
+    productImg: { width: 52, height: 52, borderRadius: 14, marginRight: 14, backgroundColor: '#F0F0F0' },
+    productInfo: { fontSize: 15, color: '#1A1A1A', flex: 1, fontWeight: '600' },
+    lineDivider: { height: 1, backgroundColor: '#F0F0F0', marginVertical: 15 },
+    summaryRow: { flexDirection: 'row', justifyContent: 'space-between' },
+    summaryLabel: { color: '#888', fontWeight: '600' },
+    summaryValue: { fontWeight: '800', color: '#000' },
+    zigzagContainer: {
         flexDirection: 'row',
-        gap: SPACING.lg,
-        marginTop: SPACING.sm,
+        height: 12,
+        backgroundColor: 'transparent',
+        marginHorizontal: 16,
+        overflow: 'hidden',
     },
-    headerInfoItem: {
-        flex: 1,
+    zigzagTriangle: {
+        width: 16,
+        height: 16,
+        backgroundColor: '#FFF',
+        transform: [{ rotate: '45deg' }],
+        marginTop: -8,
     },
-    label: {
-        fontSize: TYPOGRAPHY.fontSize.xs,
-        color: COLORS.textMuted,
-        marginBottom: 4,
-        marginTop: 4,
+    storeSection: {
+        backgroundColor: '#FFF',
+        marginHorizontal: 16,
+        padding: 20,
+        borderBottomLeftRadius: 28,
+        borderBottomRightRadius: 28,
+        paddingTop: 12,
     },
-    value: {
-        fontSize: TYPOGRAPHY.fontSize.base,
-        fontWeight: TYPOGRAPHY.fontWeight.semibold,
-        color: COLORS.textPrimary,
-    },
-    statusBadge: {
-        paddingHorizontal: SPACING.md,
-        paddingVertical: SPACING.xs,
-        borderRadius: RADIUS.md,
-    },
-    statusText: {
-        fontSize: TYPOGRAPHY.fontSize.xs,
-        fontWeight: TYPOGRAPHY.fontWeight.bold,
-        textTransform: 'uppercase',
-    },
-    noteSection: {
-        marginTop: SPACING.md,
-        paddingTop: SPACING.md,
-        borderTopWidth: 1,
-        borderTopColor: COLORS.border,
-    },
-    noteText: {
-        fontSize: TYPOGRAPHY.fontSize.sm,
-        color: COLORS.textPrimary,
-        marginTop: SPACING.xs,
-    },
-    storeCard: {
-        marginBottom: SPACING.md,
-    },
-    sectionTitle: {
-        fontSize: TYPOGRAPHY.fontSize.lg,
-        fontWeight: TYPOGRAPHY.fontWeight.bold,
-        color: COLORS.textPrimary,
-        marginBottom: SPACING.md,
-    },
-    storeInfo: {
-        flexDirection: 'row',
-        alignItems: 'flex-start',
-        gap: SPACING.md,
-    },
-    storeDetails: {
-        flex: 1,
-    },
-    storeName: {
-        fontSize: TYPOGRAPHY.fontSize.base,
-        fontWeight: TYPOGRAPHY.fontWeight.bold,
-        color: COLORS.textPrimary,
-        marginBottom: SPACING.xs,
-    },
-    storeAddress: {
-        fontSize: TYPOGRAPHY.fontSize.sm,
-        color: COLORS.textMuted,
-        marginBottom: SPACING.xs,
-    },
-    storeManager: {
-        fontSize: TYPOGRAPHY.fontSize.sm,
-        color: COLORS.textMuted,
-        marginBottom: SPACING.xs,
-    },
-    storePhone: {
-        fontSize: TYPOGRAPHY.fontSize.sm,
-        color: COLORS.textMuted,
-    },
-    itemCard: {
-        marginBottom: SPACING.md,
-    },
-    itemHeader: {
-        flexDirection: 'row',
-        alignItems: 'flex-start',
-        gap: SPACING.md,
-    },
-    itemIcon: {
-        width: 48,
-        height: 48,
-        borderRadius: RADIUS.md,
-        backgroundColor: COLORS.primaryLight,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    itemInfo: {
-        flex: 1,
-    },
-    itemName: {
-        fontSize: TYPOGRAPHY.fontSize.base,
-        fontWeight: TYPOGRAPHY.fontWeight.semibold,
-        color: COLORS.textPrimary,
-        marginBottom: SPACING.xs,
-    },
-    itemSku: {
-        fontSize: TYPOGRAPHY.fontSize.xs,
-        color: COLORS.textMuted,
-        marginBottom: 2,
-    },
-    itemUnit: {
-        fontSize: TYPOGRAPHY.fontSize.xs,
-        color: COLORS.textMuted,
-    },
-    itemQuantity: {
-        alignItems: 'flex-end',
-    },
-    quantityLabel: {
-        fontSize: TYPOGRAPHY.fontSize.xs,
-        color: COLORS.textMuted,
-        marginBottom: 2,
-    },
-    quantityValue: {
-        fontSize: TYPOGRAPHY.fontSize.base,
-        fontWeight: TYPOGRAPHY.fontWeight.bold,
-        color: COLORS.primary,
-    },
-    quantityApproved: {
-        fontSize: TYPOGRAPHY.fontSize.base,
-        fontWeight: TYPOGRAPHY.fontWeight.bold,
-        color: COLORS.success || COLORS.primary,
-        marginTop: SPACING.xs,
-    },
-    actionButtons: {
-        marginTop: SPACING.lg,
-    },
-    cancelButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: COLORS.error + '20',
-        paddingVertical: SPACING.md,
-        paddingHorizontal: SPACING.lg,
-        borderRadius: RADIUS.md,
-        gap: SPACING.sm,
-    },
-    cancelButtonText: {
-        fontSize: TYPOGRAPHY.fontSize.base,
-        fontWeight: TYPOGRAPHY.fontWeight.semibold,
-        color: COLORS.error,
-    },
+    sectionHeading: { fontSize: 12, color: '#BBB', fontWeight: '800', marginBottom: 18, letterSpacing: 1 },
+    infoBlock: { flexDirection: 'row', alignItems: 'center', marginBottom: 18, gap: 14 },
+    cancelSection: { marginHorizontal: 16, marginTop: 24, marginBottom: 24 },
+    iconBox: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#F1F8E9', justifyContent: 'center', alignItems: 'center' },
+    infoMainText: { fontSize: 15, fontWeight: '700', color: '#1A1A1A' },
+    infoSubText: { fontSize: 13, color: '#AAA', marginTop: 1 },
 });

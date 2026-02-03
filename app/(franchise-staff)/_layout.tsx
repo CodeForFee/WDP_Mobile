@@ -79,9 +79,7 @@ export default function FranchiseStackLayout() {
       <Stack.Screen
         name="orders/[id]"
         options={{
-          title: 'Order Details',
-          headerShown: true,
-          headerLeft: () => <BackButton />
+          headerShown: false,
         }}
       />
     </Stack>
