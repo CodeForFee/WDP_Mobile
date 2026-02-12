@@ -5,7 +5,7 @@ import { decodeJWT } from '@/lib/utils';
 
 /* ================= TYPES ================= */
 
-type JwtPayload = {
+interface JwtPayload {
   sub: string;
   email: string;
   role: string;
@@ -14,7 +14,7 @@ type JwtPayload = {
   exp: number;
 };
 
-type SessionState = {
+interface SessionState {
   accessToken: string | null;
   refreshToken: string | null;
   user: JwtPayload | null;

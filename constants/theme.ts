@@ -8,57 +8,57 @@
 // ============================================
 export const COLORS = {
   // Backgrounds
-  background: '#E9E7D0',
-  backgroundSecondary: '#DFDCC0', // Slightly darker version of E9E7D0
-  backgroundTertiary: '#D5D2B0',
+  background: '#F8F9FA', // Clean White/Gray
+  backgroundSecondary: '#FFFFFF', // Pure White for cards
+  backgroundTertiary: '#F1F3F5',
   cardBackground: '#FFFFFF',
 
-  // Primary - Yellow/Amber (#FCC221)
-  primary: '#FCC221',
-  primaryLight: '#FDD86E',
-  primaryDark: '#F9A825',
-  primaryGradientStart: '#FCC221',
-  primaryGradientEnd: '#FFB300',
+  // Primary - Green (#8BC34A - Fresh Green)
+  primary: '#7CB342', // Fresh Green from image
+  primaryLight: '#DCEDC8',
+  primaryDark: '#558B2F',
+  primaryGradientStart: '#9CCC65',
+  primaryGradientEnd: '#689F38',
 
-  // Secondary - Green (#11682B)
-  secondary: '#11682B',
-  secondaryLight: '#E0F2F1',
-  cream: '#FFFDE7',
+  // Secondary - Dark Green
+  secondary: '#33691E',
+  secondaryLight: '#F1F8E9',
+  cream: '#FFFDE7', // Kept for legacy support if needed
 
   // Brand Accents
-  brandDark: '#0E431B', // Dark Green
+  brandDark: '#1B5E20',
 
   // Status Colors
-  success: '#11682B', // Using the green from palette
-  successLight: '#DCEDC8',
-  successDark: '#0E431B',
+  success: '#43A047',
+  successLight: '#E8F5E9',
+  successDark: '#1B5E20',
 
-  warning: '#FCC221', // Using the primary yellow
-  warningLight: '#FFF9C4',
-  warningDark: '#F57F17',
+  warning: '#FFB300', // Amber
+  warningLight: '#FFF8E1',
+  warningDark: '#FF6F00',
 
-  error: '#D32F2F',
+  error: '#E53935',
   errorLight: '#FFEBEE',
   errorDark: '#B71C1C',
 
-  info: '#0288D1',
+  info: '#039BE5',
   infoLight: '#E1F5FE',
 
   // Text Colors
-  textPrimary: '#0E431B', // Dark Green Text
-  textSecondary: '#475D4B', // Muted Green Gray
-  textMuted: '#8D9E90',
+  textPrimary: '#212121', // Dark Gray for high contrast
+  textSecondary: '#757575', // Medium Gray
+  textMuted: '#9E9E9E', // Light Gray
   textLight: '#FFFFFF',
-  textOnPrimary: '#0E431B', // Dark text on bright yellow
+  textOnPrimary: '#FFFFFF',
 
   // Border Colors
-  border: '#D7D5BE',
-  borderLight: '#F2F0DC',
-  borderDark: '#0E431B', // High contrast border
+  border: '#E0E0E0',
+  borderLight: '#F5F5F5',
+  borderDark: '#BDBDBD',
 
   // Misc
-  overlay: 'rgba(14, 67, 27, 0.4)', // Dark green overlay
-  shadow: 'rgba(14, 67, 27, 0.1)', // Greenish shadow
+  overlay: 'rgba(0, 0, 0, 0.4)',
+  shadow: 'rgba(0, 0, 0, 0.08)', // Softer shadow
   transparent: 'transparent',
 };
 
@@ -205,28 +205,28 @@ export const SIZES = {
 // ============================================
 export const STATUS_COLORS = {
   completed: {
-    background: COLORS.successLight,
-    text: COLORS.successDark,
+    background: '#E8F5E9', // Green 50
+    text: '#2E7D32', // Green 800
   },
   inProgress: {
-    background: COLORS.primaryLight,
-    text: COLORS.primaryDark,
+    background: '#FFF8E1', // Amber 50
+    text: '#F57F17', // Amber 900
   },
   pending: {
-    background: COLORS.warningLight,
-    text: COLORS.warningDark,
+    background: '#F3E5F5', // Purple 50
+    text: '#7B1FA2', // Purple 800
   },
   cancelled: {
-    background: COLORS.errorLight,
-    text: COLORS.errorDark,
+    background: '#FFEBEE', // Red 50
+    text: '#C62828', // Red 800
   },
   urgent: {
-    background: '#FFE5E5', // Softer red bg
-    text: COLORS.error,
+    background: '#FBE9E7', // Deep Orange 50
+    text: '#D84315', // Deep Orange 800
   },
   new: {
-    background: COLORS.infoLight,
-    text: COLORS.info,
+    background: '#E3F2FD', // Blue 50
+    text: '#1565C0', // Blue 800
   },
 };
 
