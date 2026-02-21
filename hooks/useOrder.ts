@@ -1,28 +1,26 @@
-import { ENDPOINT } from "@/api/endpoint";
-import api from "@/api/interceptor";
-import { OrderInput } from "@/schemas/orderSchema";
-import { CancelOrder, Catelog, Order, OrderDetail, OrderMyStore, ResponseData } from "@/type";
-
+import { orderRequest } from "@/apiRequest/order";
+import { CreateOrderBodyType } from "@/schemas/orderSchema";
+import { QueryOrder, QueryCatelog } from "@/type";
 
 export const useOrder = {
-    getCatalog: async () => {
-        const res = await api.get<ResponseData<Catelog[]>>(ENDPOINT.ORDER_CATALOG);
+    getCatalog: async (query?: QueryCatelog) => {
+        const res = await orderRequest.getCatalog(query);
         return res.data.data;
     },
-    createOrder: async (data: OrderInput) => {
-        const res = await api.post<ResponseData<Order>>(ENDPOINT.ORDER, data);
+    createOrder: async (data: CreateOrderBodyType) => {
+        const res = await orderRequest.createOrder(data);
         return res.data.data;
     },
     cancelOrder: async (id: string) => {
-        const res = await api.patch<ResponseData<CancelOrder>>(ENDPOINT.ORDER_CANCEL(id));
+        const res = await orderRequest.cancelOrder(id);
         return res.data.data;
     },
-    getMyStoreOrders: async () => {
-        const res = await api.get<ResponseData<OrderMyStore[]>>(ENDPOINT.ORDERS_MY_STORE);
+    getMyStoreOrders: async (query?: QueryOrder) => {
+        const res = await orderRequest.getMyStoreOrders(query);
         return res.data.data;
     },
     getOrderById: async (id: string) => {
-        const res = await api.get<ResponseData<OrderDetail>>(ENDPOINT.ORDER_DETAIL(id));
+        const res = await orderRequest.getOrderDetail(id);
         return res.data.data;
     },
 } 

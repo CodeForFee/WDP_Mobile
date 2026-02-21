@@ -10,9 +10,48 @@ export enum HttpErrorCode {
 
 
 export enum OrderStatus {
-  PENDING = "pending",
-  APPROVED = "approved",
-  REJECTED = "rejected",
-  DELIVERED = "delivered",
-  CANCELLED = "cancelled",
+  PENDING = 'pending',
+  APPROVED = 'approved',
+  REJECTED = 'rejected',
+  CANCELLED = 'cancelled',
+  PICKING = 'picking',
+  DELIVERING = 'delivering',
+  COMPLETED = 'completed',
+  CLAIMED = 'claimed'
+}
+
+export enum ShipmentStatus {
+  PREPARING = 'preparing',
+  IN_TRANSIT = 'in_transit',
+  DELIVERED = 'delivered',
+  COMPLETED = 'completed',
+  CANCELLED = 'cancelled'
+}
+
+export enum ClaimStatus {
+  PENDING = 'pending',
+  APPROVED = 'approved',
+  REJECTED = 'rejected'
+}
+
+export enum TransactionType {
+  IMPORT = 'import',
+  EXPORT = 'export',
+  WASTE = 'waste',
+  ADJUSTMENT = 'adjustment'
+}
+
+export enum BatchStatus {
+  PENDING = 'pending',
+  AVAILABLE = 'available',
+  EMPTY = 'empty',
+  EXPIRED = 'expired'
+}
+
+export enum UserRole {
+  ADMIN = 'admin',
+  MANAGER = 'manager',
+  SUPPLY_COORDINATOR = 'supply_coordinator',
+  CENTRAL_KITCHEN_STAFF = 'central_kitchen_staff',
+  FRANCHISE_STORE_STAFF = 'franchise_store_staff'
 }
