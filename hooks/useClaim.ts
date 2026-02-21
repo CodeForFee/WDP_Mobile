@@ -1,9 +1,10 @@
 import { claimRequest } from "@/apiRequest/claim";
 import { CreateClaimBodyType } from "@/schemas/claimSchema";
+import { QueryClaim } from "@/type";
 
 export const useClaim = {
-    getMyStoreClaims: async (status?: string) => {
-        const res = await claimRequest.getMyStoreClaims({ status });
+    getMyStoreClaims: async (query?: QueryClaim) => {
+        const res = await claimRequest.getMyStoreClaims(query);
         return res.data.data;
     },
     getClaimById: async (id: string) => {
