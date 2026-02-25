@@ -9,12 +9,14 @@ export type ResponseData<T> = {
 };
 
 
+/** Theo api.md - ResponseError */
 export type ResponseError = {
   statusCode: number;
   message: string;
-  errors: ValidationErrorItem[];
-  timestamp: string;
-  path: string;
+  error?: string;
+  errors?: { field: string; message: string }[];
+  timestamp?: string;
+  path?: string;
 };
 
 
@@ -38,17 +40,17 @@ export type User = {
   createdAt: string;
 }
 
-export type Catelog = {
+/** ProductCatalogDto - GET /orders/catalog (Blind Ordering: id, name, sku, unit) */
+export type ProductCatalogDto = {
   id: number;
   name: string;
   sku: string;
   unit: string;
-  /** URL ảnh — backend GET /orders/catalog cần trả field này (image_url hoặc imageUrl) giống API đơn hàng */
-  image_url?: string;
   imageUrl?: string;
-  thumbnail?: string;
-  photo?: string;
-}
+};
+
+/** @deprecated Dùng ProductCatalogDto */
+export type Catelog = ProductCatalogDto;
 
 export type Product = Catelog & {
   shelfLifeDays: number;
@@ -60,12 +62,15 @@ export type Product = Catelog & {
 
 
 
-export type Item = {
+/** Order item trong chi tiết đơn - theo api.md (camelCase) */
+export type OrderItemDetail = {
   id: number;
-  orderId: string;
-  quantityRequested: string;
-  quantityApproved: string;
-  product: Product;
+  productId?: number;
+  productName?: string;
+  requestedQty?: number;
+  quantityRequested?: string;
+  quantityApproved?: string;
+  product?: Product;
 }
 
 export type Store = {
@@ -78,24 +83,33 @@ export type Store = {
   updatedAt: string;
 }
 
+/** Order response - theo api.md (camelCase) */
 export type Order = {
-  id: string,
-  store_id: string,
-  status: OrderStatus,
-  deliveryDate: string,
-  createdAt: string
-}
+  id: string;
+  storeId: string;
+  status: OrderStatus;
+  deliveryDate: string;
+  createdAt: string;
+};
+
+/** Chi tiết đơn hàng - theo api.md */
 export type OrderDetail = Order & {
-  totalAmount: string;
-  priority: string;
-  note: string;
-  updatedAt: string;
-  items: Item[];
+  totalAmount?: string;
+  priority?: string;
+  note?: string;
+  updatedAt?: string;
+  items: OrderItemDetail[];
   store: Store;
-}
-export type OrderMyStore = Omit<OrderDetail, 'store'>
-export type CancelOrder = {
-  orderId: string,
-  status: OrderStatus
-}
+};
+
+export type OrderMyStore = Omit<OrderDetail, 'store'>;
+
+/** Response PATCH /orders/franchise/:id/cancel - theo api.md */
+export type CancelOrderResponse = {
+  orderId: string;
+  status: OrderStatus;
+};
+
+/** @deprecated Dùng CancelOrderResponse */
+export type CancelOrder = CancelOrderResponse;
 

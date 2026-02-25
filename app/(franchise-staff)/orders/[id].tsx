@@ -10,17 +10,20 @@ import { OrderDetail } from '@/type';
 import { OrderStatus } from '@/enum';
 import { handleErrorApi } from '@/lib/errors';
 
-// Màu banner theo status
+// Màu banner theo status - theo api.md OrderStatus
 const getStatusBannerColor = (status: string) => {
     switch (status) {
         case OrderStatus.PENDING:
             return { bg: '#FEF3C7', text: '#D97706' }; // amber
         case OrderStatus.APPROVED:
+        case OrderStatus.PICKING:
+        case OrderStatus.DELIVERING:
             return { bg: '#89A54D', text: '#FFF' }; // green
+        case OrderStatus.COMPLETED:
+        case OrderStatus.CLAIMED:
+            return { bg: '#D1FAE5', text: '#059669' }; // emerald
         case OrderStatus.REJECTED:
             return { bg: '#FEE2E2', text: '#DC2626' }; // red
-        case OrderStatus.DELIVERED:
-            return { bg: '#D1FAE5', text: '#059669' }; // emerald
         case OrderStatus.CANCELLED:
             return { bg: '#F3F4F6', text: '#6B7280' }; // gray
         default:
@@ -103,7 +106,7 @@ export default function OrderDetailsScreen() {
                         <View style={[styles.statusBanner, { backgroundColor: statusColors.bg }]}>
                             <Text style={[styles.statusLabel, { color: statusColors.text }]}>{order.status.charAt(0).toUpperCase() + order.status.slice(1)}</Text>
                             <Text style={[styles.statusDate, { color: statusColors.text, opacity: 0.9 }]}>
-                        {new Date(order.updatedAt).toLocaleString('en-US', { 
+                        {new Date(order.updatedAt ?? order.createdAt).toLocaleString('en-US', { 
                             weekday: 'long', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' 
                         })}
                             </Text>
@@ -119,8 +122,8 @@ export default function OrderDetailsScreen() {
                         <View key={index} style={styles.itemRow}>
                             <Image source={{ uri: item.product?.imageUrl }} style={styles.productImg} />
                             <Text style={styles.productInfo}>
-                                <Text style={{ fontWeight: '800' }}>{item.quantityRequested} × </Text>
-                                {item.product.name}
+                                <Text style={{ fontWeight: '800' }}>{item.quantityRequested ?? item.requestedQty ?? '-'} × </Text>
+                                {item.productName ?? item.product?.name ?? 'Sản phẩm'}
                             </Text>
                         </View>
                     ))}

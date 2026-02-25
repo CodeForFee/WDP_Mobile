@@ -13,7 +13,8 @@ export const ENDPOINT = {
     ORDER: '/orders',
     ORDER_DETAIL: (id: string) => `/orders/${id}`,
     ORDERS_MY_STORE: '/orders/my-store',
-    ORDER_CANCEL: (id: string) => `/orders/${id}/cancel`,
+    /** PATCH /orders/franchise/:id/cancel - theo api.md */
+    ORDER_CANCEL: (id: string) => `/orders/franchise/${id}/cancel`,
 
 }
 

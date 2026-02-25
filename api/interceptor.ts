@@ -86,7 +86,6 @@ api.interceptors.response.use(
           new HttpError({
             statusCode: HttpErrorCode.UNAUTHORIZED,
             message: "Phiên đăng nhập hết hạn",
-            errors: [],
             timestamp: new Date().toISOString(),
             path: originalRequest.url ?? "",
           })
@@ -128,7 +127,6 @@ api.interceptors.response.use(
           new HttpError({
             statusCode: HttpErrorCode.UNAUTHORIZED,
             message: "Không thể làm mới phiên đăng nhập",
-            errors: [],
             timestamp: new Date().toISOString(),
             path: originalRequest.url ?? "",
           })
@@ -159,7 +157,6 @@ api.interceptors.response.use(
         new HttpError({
           statusCode: HttpErrorCode.INTERNAL_SERVER_ERROR,
           message: "Không thể kết nối server",
-          errors: [],
           timestamp: new Date().toISOString(),
           path: originalRequest.url ?? "",
         })
@@ -172,7 +169,6 @@ api.interceptors.response.use(
       new HttpError({
         statusCode: HttpErrorCode.INTERNAL_SERVER_ERROR,
         message: error.message || "Có lỗi xảy ra",
-        errors: [],
         timestamp: new Date().toISOString(),
         path: originalRequest.url ?? "",
       })
