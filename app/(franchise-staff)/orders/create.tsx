@@ -6,7 +6,7 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStoreOrder } from '@/stores/storeOrder';
 import { useOrder } from '@/hooks/useOrder';
-import { Product } from '@/type';
+import { ProductCatalogDto } from '@/type';
 import { handleErrorApi } from '@/lib/errors';
 import { COLORS } from '@/constants/theme';
 
@@ -18,7 +18,7 @@ export default function CreateOrderScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { items, addItem, updateQuantity, removeItem } = useStoreOrder();
-  const [catalog, setCatalog] = useState<Product[]>([]);
+  const [catalog, setCatalog] = useState<ProductCatalogDto[]>([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -32,7 +32,7 @@ export default function CreateOrderScreen() {
     try {
       const data = await useOrder.getCatalog();
       // Cast to Product[] assuming API returns imageUrl etc.
-      setCatalog(data as unknown as Product[]);
+      setCatalog(data);
     } catch (error) {
       handleErrorApi({ error });
     } finally {
@@ -128,7 +128,7 @@ export default function CreateOrderScreen() {
                         quantity: 1,
                         name: product.name,
                         unit: product.unit,
-                        image_url: product.image_url
+                        image_url: product.imageUrl ?? (product as any).image_url
                       })}
                       style={[styles.qtyBtn, { backgroundColor: COLORS.primary }]}
                     >

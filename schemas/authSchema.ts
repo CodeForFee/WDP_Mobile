@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const authSchema = z.object({
-  email: z.email("Email không hợp lệ"),
+  email: z.string().email("Email không hợp lệ"),
   password: z
     .string()
     .min(6, "Password tối thiểu 6 ký tự")
@@ -9,12 +9,12 @@ export const authSchema = z.object({
 });
 
 export const emailSchema = z.object({
-  email: z.email("Email không hợp lệ"),
+  email: z.string().email("Email không hợp lệ"),
 });
 
 export const resetPasswordSchema = z
   .object({
-    email: z.email("Email không hợp lệ"),
+    email: z.string().email("Email không hợp lệ"),
     code: z
     .string()
     .length(6, "Code phải có đúng 6 ký tự số")
