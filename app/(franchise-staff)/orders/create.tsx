@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStoreOrder } from '@/stores/storeOrder';
 import { useSessionStore } from '@/stores/storeSession';
 import { useOrder } from '@/hooks/useOrder';
-import { Product } from '@/type';
+import { ProductCatalogDto } from '@/type';
 import { handleErrorApi } from '@/lib/errors';
 import { COLORS } from '@/constants/theme';
 
@@ -19,7 +19,7 @@ export default function CreateOrderScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { items, addItem, updateQuantity, removeItem } = useStoreOrder();
-  const [catalog, setCatalog] = useState<Product[]>([]);
+  const [catalog, setCatalog] = useState<ProductCatalogDto[]>([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');

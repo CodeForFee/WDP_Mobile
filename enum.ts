@@ -8,11 +8,23 @@ export enum HttpErrorCode {
   INTERNAL_SERVER_ERROR = 500,
 }
 
+/** Theo api.md - UserRole */
+export enum UserRole {
+  ADMIN = 'admin',
+  MANAGER = 'manager',
+  SUPPLY_COORDINATOR = 'supply_coordinator',
+  CENTRAL_KITCHEN_STAFF = 'central_kitchen_staff',
+  FRANCHISE_STORE_STAFF = 'franchise_store_staff',
+}
 
+/** Theo api.md - OrderStatus */
 export enum OrderStatus {
-  PENDING = "pending",
-  APPROVED = "approved",
-  REJECTED = "rejected",
-  DELIVERED = "delivered",
-  CANCELLED = "cancelled",
+  PENDING = 'pending',
+  APPROVED = 'approved',
+  REJECTED = 'rejected',
+  CANCELLED = 'cancelled',
+  PICKING = 'picking',
+  DELIVERING = 'delivering',
+  COMPLETED = 'completed',
+  CLAIMED = 'claimed',
 }

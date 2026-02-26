@@ -116,9 +116,9 @@ export default function FranchiseDashboard() {
     );
   };
 
-  // Lấy ảnh sản phẩm: catalog có thể trả image_url, imageUrl, thumbnail, photo (backend cần gửi ít nhất 1)
+  // ProductCatalogDto - theo api.md: id, name, sku, unit (imageUrl optional)
   const getCatalogImageUri = (item: Catelog): string | undefined =>
-    item.image_url || item.imageUrl || item.thumbnail || (item as any).photo;
+    item.imageUrl;
 
   // Render Catalog Item
   const renderCatalogItem = ({ item }: { item: Catelog }) => {
