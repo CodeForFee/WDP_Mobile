@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStoreOrder } from '@/stores/storeOrder';
+import { useSessionStore } from '@/stores/storeSession';
 import { useOrder } from '@/hooks/useOrder';
 import { Product } from '@/type';
 import { handleErrorApi } from '@/lib/errors';
@@ -22,6 +23,11 @@ export default function CreateOrderScreen() {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const { user } = useSessionStore();
+
+  useEffect(() => {
+    console.log('[CreateOrderScreen] Current User:', user);
+  }, [user]);
 
   const categories = ["Bakery", "Spring onions", "Bananas", "Pizza", "Cake"];
 
@@ -30,9 +36,10 @@ export default function CreateOrderScreen() {
   const fetchCatalog = async () => {
     setLoading(true);
     try {
-      const data = await useOrder.getCatalog();
-      // Cast to Product[] assuming API returns imageUrl etc.
-      setCatalog(data as unknown as Product[]);
+      const res = await useOrder.getCatalog();
+      console.log('[CreateOrderScreen] Catalog API Response:', res);
+      const data = (res as any)?.items || res;
+      setCatalog(Array.isArray(data) ? (data as unknown as Product[]) : []);
     } catch (error) {
       handleErrorApi({ error });
     } finally {
@@ -41,9 +48,10 @@ export default function CreateOrderScreen() {
     }
   };
 
-  const filteredCatalog = catalog.filter(p =>
-    p.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredCatalog = (catalog || []).filter(p =>
+    p.name?.toLowerCase().includes(searchQuery.toLowerCase())
   );
+  console.log('[CreateOrderScreen] Render - catalog length:', catalog.length, 'filteredCatalog length:', filteredCatalog.length);
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -85,6 +93,7 @@ export default function CreateOrderScreen() {
             <Text style={styles.cardTitle}>Shopping list</Text>
           </View>
           <ScrollView
+            style={{ flex: 1 }}
             showsVerticalScrollIndicator={false}
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={fetchCatalog} />}
             contentContainerStyle={{ paddingBottom: 100 + insets.bottom }} // Extra padding for floating cart + safe area
@@ -128,7 +137,7 @@ export default function CreateOrderScreen() {
                         quantity: 1,
                         name: product.name,
                         unit: product.unit,
-                        image_url: product.image_url
+                        image_url: product.imageUrl
                       })}
                       style={[styles.qtyBtn, { backgroundColor: COLORS.primary }]}
                     >

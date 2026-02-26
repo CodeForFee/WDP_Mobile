@@ -15,8 +15,10 @@ export default function OrdersTabRoute() {
   const fetchOrders = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await useOrder.getMyStoreOrders();
-      setOrders(data);
+      const res = await useOrder.getMyStoreOrders();
+      console.log('[OrdersTabRoute] My Store Orders API Response:', res);
+      const data = (res as any)?.items || res;
+      setOrders(Array.isArray(data) ? data : []);
     } catch (error) {
       handleErrorApi({ error });
     } finally {

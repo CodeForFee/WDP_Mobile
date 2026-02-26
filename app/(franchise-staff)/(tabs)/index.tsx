@@ -36,8 +36,10 @@ export default function FranchiseDashboard() {
   const fetchOrders = async () => {
     setLoadingOrders(true);
     try {
-      const data = await useOrder.getMyStoreOrders();
-      setOrders(data);
+      const res = await useOrder.getMyStoreOrders();
+      // Support both direct array and { items: [] } formats
+      const data = (res as any)?.items || res;
+      setOrders(Array.isArray(data) ? data : []);
     } catch (error) {
       handleErrorApi({ error });
     } finally {
@@ -57,8 +59,10 @@ export default function FranchiseDashboard() {
   const fetchCatalog = async () => {
     setLoadingCatalog(true);
     try {
-      const data = await useOrder.getCatalog();
-      setCatalog(data);
+      const res = await useOrder.getCatalog();
+      // Support both direct array and { items: [] } formats
+      const data = (res as any)?.items || res;
+      setCatalog(Array.isArray(data) ? data : []);
     } catch (error) {
       handleErrorApi({ error });
     } finally {

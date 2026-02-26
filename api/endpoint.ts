@@ -14,6 +14,6 @@ export const ENDPOINT = {
     ORDER_DETAIL: (id: string) => `/orders/${id}`,
     ORDERS_MY_STORE: '/orders/my-store',
     ORDER_CANCEL: (id: string) => `/orders/${id}/cancel`,
-
+    INVENTORY_STORE: '/inventory/store',
 }
 
