@@ -1,43 +1,34 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, RefreshControl, Image } from 'react-native';
 import { LoadingSpinner } from '@/components/common';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStoreOrder } from '@/stores/storeOrder';
-import { useSessionStore } from '@/stores/storeSession';
 import { useOrder } from '@/hooks/useOrder';
 import { ProductCatalogDto } from '@/type';
-import { handleErrorApi } from '@/lib/errors';
 import { COLORS } from '@/constants/theme';
+
+import { PAGINATION_DEFAULT } from '@/constant';
 
 export default function CreateOrderScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { items, addItem, updateQuantity, removeItem } = useStoreOrder();
-  const [catalog, setCatalog] = useState<ProductCatalogDto[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
+  const { useCatalog } = useOrder();
   const [searchQuery, setSearchQuery] = useState('');
-  const { user } = useSessionStore();
+
+  const {
+    data: catalog = [],
+    isLoading: loading,
+    refetch,
+    isRefetching: refreshing
+  } = useCatalog(PAGINATION_DEFAULT);
 
   const categories = ["Bakery", "Spring onions", "Bananas", "Pizza", "Cake"];
 
-  useEffect(() => { fetchCatalog(); }, []);
-
   const fetchCatalog = async () => {
-    setLoading(true);
-    try {
-      const res = await useOrder.getCatalog();
-      console.log('[CreateOrderScreen] Catalog API Response:', res);
-      const data = (res as any)?.items || res;
-      setCatalog(Array.isArray(data) ? data : []);
-    } catch (error) {
-      handleErrorApi({ error });
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
+    refetch();
   };
 
   const filteredCatalog = (catalog || []).filter(p =>

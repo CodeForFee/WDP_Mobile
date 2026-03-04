@@ -10,18 +10,8 @@ export default function OrderSuccessScreen() {
     const router = useRouter();
     const { id } = useLocalSearchParams();
     const insets = useSafeAreaInsets();
-    const [order, setOrder] = useState<any>(null);
-
-    useEffect(() => {
-        if (id) fetchOrderDetails(String(id));
-    }, [id]);
-
-    const fetchOrderDetails = async (orderId: string) => {
-        try {
-            const data = await useOrder.getOrderById(orderId);
-            setOrder(data);
-        } catch (error) { console.log(error); }
-    };
+    const { useOrderDetail } = useOrder();
+    const { data: order, isLoading } = useOrderDetail(id as string);
 
     /**
      * LUỒNG ĐIỀU HƯỚNG VỀ HOME (TAB INVENTORY)

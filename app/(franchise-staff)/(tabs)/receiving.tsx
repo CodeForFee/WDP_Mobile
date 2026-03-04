@@ -5,11 +5,16 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+
 import { COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS } from '@/constants/theme';
-import { Card, StatusBadge, Button, Header } from '@/components/common';
+import { Card, StatusBadge, Button, Header, LoadingSpinner, getStatusType } from '@/components/common';
+import { useShipment } from '@/hooks/useShipment';
+import { PAGINATION_DEFAULT } from '@/constant';
+import { handleErrorApi } from '@/lib/errors';
+import { ShipmentStatus } from '@/enum';
 
 const checklistItems = [
   { id: '1', title: 'Temperature Check', desc: 'Verify all frozen items are below 0°F', icon: 'thermometer', status: 'pending' },
@@ -19,9 +24,10 @@ const checklistItems = [
 ];
 
 export default function ReceiveGoodsScreen() {
-  const router = useRouter();
+  const { useMyStoreShipments, receiveAllMutation } = useShipment(); // Destructured receiveAllMutation
+  const { data: shipments = [], isLoading, refetch } = useMyStoreShipments(PAGINATION_DEFAULT); // Destructured refetch
+
   const [checklist, setChecklist] = useState(checklistItems);
-  const [isScanning, setIsScanning] = useState(false);
 
   const toggleCheck = (id: string) => {
     setChecklist(prev => prev.map(item =>
@@ -32,6 +38,44 @@ export default function ReceiveGoodsScreen() {
   };
 
   const completedCount = checklist.filter(item => item.status === 'checked').length;
+
+  const currentShipment = shipments.find(s => s.status === ShipmentStatus.IN_TRANSIT || s.status === ShipmentStatus.DELIVERED) || shipments[0]; // Modified currentShipment logic
+
+  const handleAcceptDelivery = () => {
+    if (!currentShipment) return;
+
+    Alert.alert(
+      'Xác nhận nhận hàng',
+      'Bạn xác nhận đã kiểm tra và nhận đầy đủ số lượng hàng hóa trong shipment này?',
+      [
+        { text: 'Hủy', style: 'cancel' },
+        {
+          text: 'Xác nhận',
+          onPress: () => {
+            receiveAllMutation.mutate(currentShipment.id, {
+              onSuccess: () => {
+                Alert.alert('Thành công', 'Đã nhận hàng thành công.');
+                refetch();
+                setChecklist(checklistItems); // Reset checklist
+              },
+              onError: (error) => {
+                handleErrorApi({ error });
+              }
+            });
+          }
+        }
+      ]
+    );
+  };
+
+  if (isLoading || receiveAllMutation.isPending) { // Added receiveAllMutation.isPending
+    return (
+      <View style={styles.center}>
+        <LoadingSpinner size={40} color={COLORS.primary} />
+        {receiveAllMutation.isPending && <Text style={{ marginTop: 10, color: COLORS.textMuted }}>Đang xử lý...</Text>}
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -58,7 +102,7 @@ export default function ReceiveGoodsScreen() {
           <Button
             title="Start Scanning"
             icon="scan"
-            onPress={() => setIsScanning(true)}
+            onPress={() => { }}
             fullWidth
             style={styles.scanButton}
           />
@@ -69,20 +113,16 @@ export default function ReceiveGoodsScreen() {
           <Text style={styles.sectionTitle}>Delivery Information</Text>
           <Card>
             <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>Shipment ID</Text>
+              <Text style={styles.infoValue}>#{currentShipment?.id.slice(0, 8) ?? '---'}</Text>
+            </View>
+            <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Supplier</Text>
-              <Text style={styles.infoValue}>Fresh Poultry Co.</Text>
-            </View>
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Expected Time</Text>
-              <Text style={styles.infoValue}>2:30 PM</Text>
-            </View>
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Items</Text>
-              <Text style={styles.infoValue}>12 Products</Text>
+              <Text style={styles.infoValue}>{currentShipment?.order?.storeName || 'Supplier'}</Text>
             </View>
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Status</Text>
-              <StatusBadge status="Pending" type="pending" size="sm" />
+              <StatusBadge status={currentShipment?.status || 'Pending'} type={getStatusType(currentShipment?.status || 'pending')} size="sm" />
             </View>
           </Card>
         </View>
@@ -139,9 +179,10 @@ export default function ReceiveGoodsScreen() {
           />
           <Button
             title="Accept Delivery"
-            onPress={() => { }}
+            onPress={handleAcceptDelivery}
             style={styles.actionButton}
-            disabled={completedCount < checklist.length}
+            disabled={!currentShipment || completedCount < checklist.length}
+            loading={receiveAllMutation.isPending}
           />
         </View>
       </ScrollView>
@@ -302,5 +343,10 @@ const styles = StyleSheet.create({
   },
   actionButton: {
     flex: 1,
+  },
+  center: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

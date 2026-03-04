@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -15,64 +15,21 @@ import { COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS } from '@/constants/theme'
 import { useSessionStore } from '@/stores/storeSession';
 import { useAuth } from '@/hooks/useAuth';
 import { useOrder } from '@/hooks/useOrder';
-import { User, CatalogItem, OrderMyStore } from '@/type';
-import { handleErrorApi } from '@/lib/errors';
+import { CatalogItem, OrderMyStore } from '@/type';
+import { PAGINATION_DEFAULT } from '@/constant';
 
 export default function FranchiseDashboard() {
   const router = useRouter();
   const session = useSessionStore();
-  const [user, setUser] = useState<User | null>(null);
-  const [catalog, setCatalog] = useState<CatalogItem[]>([]);
-  const [orders, setOrders] = useState<OrderMyStore[]>([]);
+  const { useMe } = useAuth();
+  const { useCatalog, useMyStoreOrders } = useOrder();
 
-  const [loadingCatalog, setLoadingCatalog] = useState(false);
-  const [loadingOrders, setLoadingOrders] = useState(false);
+  const { data: user } = useMe();
+  const { data: catalog = [], isLoading: loadingCatalog } = useCatalog(PAGINATION_DEFAULT);
+  const { data: orders = [], isLoading: loadingOrders } = useMyStoreOrders(PAGINATION_DEFAULT);
 
-  useEffect(() => {
-    fetchUserProfile();
-    fetchCatalog();
-    fetchOrders();
-  }, []);
 
-  const fetchOrders = async () => {
-    setLoadingOrders(true);
-    try {
-      const res = await useOrder.getMyStoreOrders();
-      // Support both direct array and { items: [] } formats
-      const data = (res as any)?.items || res;
-      setOrders(Array.isArray(data) ? data : []);
-    } catch (error) {
-      handleErrorApi({ error });
-    } finally {
-      setLoadingOrders(false);
-    }
-  };
 
-  const fetchUserProfile = async () => {
-    try {
-      const userData = await useAuth.me();
-      setUser(userData);
-    } catch (error) {
-      handleErrorApi({ error });
-    }
-  };
-
-  const fetchCatalog = async () => {
-    setLoadingCatalog(true);
-    try {
-      const res = await useOrder.getCatalog();
-      // Support both direct array and { items: [] } formats
-      const data = (res as any)?.items || res;
-      setCatalog(Array.isArray(data) ? data : []);
-    } catch (error) {
-      handleErrorApi({ error });
-    } finally {
-      setLoadingCatalog(false);
-    }
-  };
-
-  const displayName = user?.username || session.user?.email || 'User';
-  const displayRole = user?.role || session.user?.role || 'Staff';
 
   const formatOrderTime = (dateStr: string) => {
     const d = new Date(dateStr);
@@ -160,8 +117,8 @@ export default function FranchiseDashboard() {
               <Ionicons name="person" size={24} color={COLORS.primary} />
             </View>
             <View>
-              <Text style={styles.welcomeText}>{displayName}</Text>
-              <Text style={styles.roleText}>{displayRole}</Text>
+              <Text style={styles.welcomeText}>{user?.username || 'User'}</Text>
+              <Text style={styles.roleText}>{user?.role || 'Staff'}</Text>
             </View>
           </View>
           <TouchableOpacity style={styles.notifButton}>
