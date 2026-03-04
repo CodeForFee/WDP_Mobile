@@ -41,8 +41,8 @@ export const handleErrorApi = ({
     }
 
       // map errors với setError
-    const errors = error.payload.errors;
-    if (errors && errors.length > 0) {
+    const errors = error.payload.errors ?? [];
+    if (errors.length > 0) {
       errors.forEach((err) => {
         setError(err.field, {
           type: "server",

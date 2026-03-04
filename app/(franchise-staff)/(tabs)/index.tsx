@@ -36,8 +36,10 @@ export default function FranchiseDashboard() {
   const fetchOrders = async () => {
     setLoadingOrders(true);
     try {
-      const data = await useOrder.getMyStoreOrders();
-      setOrders(data);
+      const res = await useOrder.getMyStoreOrders();
+      // Support both direct array and { items: [] } formats
+      const data = (res as any)?.items || res;
+      setOrders(Array.isArray(data) ? data : []);
     } catch (error) {
       handleErrorApi({ error });
     } finally {
@@ -57,8 +59,10 @@ export default function FranchiseDashboard() {
   const fetchCatalog = async () => {
     setLoadingCatalog(true);
     try {
-      const data = await useOrder.getCatalog();
-      setCatalog(data);
+      const res = await useOrder.getCatalog();
+      // Support both direct array and { items: [] } formats
+      const data = (res as any)?.items || res;
+      setCatalog(Array.isArray(data) ? data : []);
     } catch (error) {
       handleErrorApi({ error });
     } finally {
@@ -112,9 +116,9 @@ export default function FranchiseDashboard() {
     );
   };
 
-  // Lấy ảnh sản phẩm: catalog có thể trả image_url, imageUrl, thumbnail, photo (backend cần gửi ít nhất 1)
+  // ProductCatalogDto - theo api.md: id, name, sku, unit (imageUrl optional)
   const getCatalogImageUri = (item: Catelog): string | undefined =>
-    item.image_url || item.imageUrl || item.thumbnail || (item as any).photo;
+    item.imageUrl;
 
   // Render Catalog Item
   const renderCatalogItem = ({ item }: { item: Catelog }) => {

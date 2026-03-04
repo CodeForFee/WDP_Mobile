@@ -111,7 +111,7 @@ export default function ConfirmOrderScreen() {
       console.error("ORDER ERROR:", error);
 
       if (error instanceof EntityError) {
-        const details = error.payload.errors
+        const details = (error.payload.errors ?? [])
           .map((e: any) => `${e.field}: ${e.message}`)
           .join('\n');
 

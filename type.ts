@@ -13,9 +13,10 @@ export type ResponseData<T> = {
 export type ResponseError = {
   statusCode: number;
   message: string;
-  errors: ValidationErrorItem[];
-  timestamp: string;
-  path: string;
+  error?: string;
+  errors?: { field: string; message: string }[];
+  timestamp?: string;
+  path?: string;
 };
 
 export type ValidationErrorItem = {
