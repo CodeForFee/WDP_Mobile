@@ -211,11 +211,11 @@ export default function OrderTestPage() {
                             <Text style={styles.orderId}>#{ord.id.slice(0, 8)}...</Text>
                             <View style={[styles.badge,
                             ord.status === OrderStatus.PENDING ? styles.bgYellow :
-                                ord.status === OrderStatus.DELIVERED ? styles.bgGreen : styles.bgGray
+                                ord.status === OrderStatus.COMPLETED ? styles.bgGreen : styles.bgGray
                             ]}>
                                 <Text style={[styles.badgeText,
                                 ord.status === OrderStatus.PENDING ? styles.textYellow :
-                                    ord.status === OrderStatus.DELIVERED ? styles.textGreen : styles.textGray
+                                    ord.status === OrderStatus.COMPLETED ? styles.textGreen : styles.textGray
                                 ]}>{ord.status}</Text>
                             </View>
                         </View>
@@ -389,12 +389,12 @@ export default function OrderTestPage() {
                             {selectedOrder.items.map((item, idx) => (
                                 <View key={idx} style={styles.itemRow}>
                                     <View>
-                                        <Text style={styles.itemName}>{item.product.name}</Text>
-                                        <Text style={styles.itemSku}>{item.product.sku}</Text>
+                                        <Text style={styles.itemName}>{item.productName ?? item.product?.name ?? 'Sản phẩm'}</Text>
+                                        <Text style={styles.itemSku}>{item.product?.sku ?? '-'}</Text>
                                     </View>
                                     <View style={{ alignItems: 'flex-end' }}>
-                                        <Text style={styles.itemQty}>x{item.quantityRequested}</Text>
-                                        <Text style={styles.itemUnit}>{item.product.unit}</Text>
+                                        <Text style={styles.itemQty}>x{item.quantityRequested ?? item.requestedQty ?? '-'}</Text>
+                                        <Text style={styles.itemUnit}>{item.product?.unit ?? '-'}</Text>
                                     </View>
                                 </View>
                             ))}

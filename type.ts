@@ -1,4 +1,4 @@
-import { ClaimStatus, OrderStatus, ShipmentStatus, TransactionType } from "./enum";
+import { ClaimStatus, OrderStatus, ShipmentStatus, TransactionType, UserRole } from "./enum";
 
 /* ================= BASE TYPES ================= */
 
@@ -13,9 +13,10 @@ export type ResponseData<T> = {
 export type ResponseError = {
   statusCode: number;
   message: string;
-  errors: ValidationErrorItem[];
-  timestamp: string;
-  path: string;
+  error?: string;
+  errors?: { field: string; message: string }[];
+  timestamp?: string;
+  path?: string;
 };
 
 export type ValidationErrorItem = {
@@ -23,8 +24,8 @@ export type ValidationErrorItem = {
   message: string;
 }
 
-export type BaseResponePagination<T> = {
-  items: T
+export type BaseResponsePagination<T> = {
+  items: T[]
   meta: {
     totalItems: number;
     itemCount: number;
@@ -35,9 +36,8 @@ export type BaseResponePagination<T> = {
 }
 
 export type BaseRequestPagination = {
-  page: number;
-  limit: number;
-  sortOrder: 'ASC' | 'DESC'
+  sortOrder: 'ASC' | 'DESC';
+  sortBy?: string;
 }
 
 /* ================= AUTH TYPES ================= */
@@ -51,8 +51,8 @@ export type User = {
   id: string;
   username: string;
   email: string;
-  role: string;
-  storeId?: string;
+  role: UserRole;
+  storeId: string | null;
   status: string;
   createdAt: string;
 }
@@ -78,21 +78,22 @@ export type Product = {
   name: string;
   baseUnitId: number;
   shelfLifeDays: number;
-  minStockLevel: number;
   imageUrl: string | null;
   isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
 }
 
 export type CatalogItem = {
-  productId: number;
+  id: number;
   sku: string;
   name: string;
   unit: string;
-  imageUrl: string;
-  isAvailable: boolean;
+  imageUrl?: string;
 };
+
+export type Catelog = CatalogItem;
+export type ProductCatalogDto = CatalogItem;
+
+
 
 
 /* ================= ORDER TYPES ================= */
@@ -101,20 +102,20 @@ export type Order = {
   id: string;
   storeId: string;
   status: OrderStatus;
-  totalAmount: string;
   deliveryDate: string;
-  note: string | null;
-  priority: string;
   createdAt: string;
-  updatedAt: string;
+  items?: OrderItem[];
 }
+
+export type OrderMyStore = Order;
+
 
 export type OrderItem = {
   id: number;
   orderId: string;
   productId: number;
-  quantityRequested: string;
-  quantityApproved: string | null;
+  quantityRequested: number;
+  quantityApproved: number | null;
   product: Product;
 }
 
@@ -123,13 +124,7 @@ export type OrderDetail = Order & {
   store: Store;
 }
 
-export type CancelOrder = {
-  orderId: string;
-  status: OrderStatus;
-}
-
 export type QueryOrder = BaseRequestPagination & {
-  sortBy?: string
   status?: OrderStatus
   search?: string
   storeId?: string
@@ -137,17 +132,14 @@ export type QueryOrder = BaseRequestPagination & {
   toDate?: string
 }
 
-export type QueryCatelog = BaseRequestPagination & {
-  sortBy?: string
-  isActive?: boolean
+export type QueryCatalog = BaseRequestPagination & {
   search?: string
 }
 
 export type QueryClaim = BaseRequestPagination & {
-  sortBy?: string
   status?: ClaimStatus
   search?: string    //search by claimId, shipmentId
-  storeId?: string  // disable in be
+  storeId?: string
   fromDate?: string
   toDate?: string
 }
@@ -158,10 +150,13 @@ export type QueryClaim = BaseRequestPagination & {
 export type Shipment = {
   id: string;
   orderId: string;
-  storeName: string;
   status: ShipmentStatus;
-  shipDate: string;
   createdAt: string;
+  order: {
+    id: string;
+    storeId: string;
+    storeName: string;
+  };
 }
 
 export type ShipmentItem = {
@@ -169,18 +164,17 @@ export type ShipmentItem = {
   batchCode: string;
   productId: number;
   productName: string;
+  sku: string;
   quantity: number;
-  unit: string;
   expiryDate: string;
+  imageUrl: string | null;
 }
 
 export type ShipmentDetail = Shipment & {
-  storeId: string;
   items: ShipmentItem[];
 }
 
 export type QueryShipment = BaseRequestPagination & {
-  sortBy?: string
   status?: ShipmentStatus
   search?: string
   storeId?: string
@@ -219,11 +213,9 @@ export type InventoryTransaction = {
 
 export type QueryInventory = BaseRequestPagination & {
   search?: string;
-  sortBy?: string;
 }
 
 export type QueryInventoryTransaction = BaseRequestPagination & {
-  sortBy?: string;
   type?: TransactionType;
   fromDate?: string;
   toDate?: string;
@@ -232,28 +224,21 @@ export type QueryInventoryTransaction = BaseRequestPagination & {
 /* ================= CLAIM TYPES ================= */
 
 export type Claim = {
-  claimId: string;
+  id: string;
   shipmentId: string;
-  storeId?: string;
-  status: string;
-  description: string;
-  items: ClaimItem[];
+  status: ClaimStatus;
   createdAt: string;
-  resolutionNote?: string;
-  resolvedAt?: string;
-  totalDamaged?: number;
-  totalMissing?: number;
+  resolvedAt: string | null;
+  items: ClaimItem[];
 };
 
 export type ClaimItem = {
-  productId: number;
   productName: string;
-  batchId: number;
-  batchCode?: string;
+  sku: string;
   quantityMissing: number;
   quantityDamaged: number;
   reason: string;
-  imageProofUrl?: string;
+  imageUrl?: string;
 };
 
 export type ClaimDetail = Claim & {
