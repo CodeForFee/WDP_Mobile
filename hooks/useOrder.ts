@@ -1,9 +1,9 @@
 import { orderRequest } from "@/apiRequest/order";
 import { CreateOrderBodyType } from "@/schemas/orderSchema";
-import { QueryOrder, QueryCatelog } from "@/type";
+import { QueryOrder, QueryCatalog } from "@/type";
 
 export const useOrder = {
-    getCatalog: async (query?: QueryCatelog) => {
+    getCatalog: async (query?: QueryCatalog) => {
         const res = await orderRequest.getCatalog(query);
         return res.data.data;
     },

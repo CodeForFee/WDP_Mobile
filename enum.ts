@@ -29,27 +29,29 @@ export enum OrderStatus {
   CLAIMED = 'claimed'
 }
 
+/** Theo api.md - ShipmentStatus */
 export enum ShipmentStatus {
   PREPARING = 'preparing',
   IN_TRANSIT = 'in_transit',
   DELIVERED = 'delivered',
   COMPLETED = 'completed',
-  CANCELLED = 'cancelled'
 }
 
+/** Theo api.md - ClaimStatus */
 export enum ClaimStatus {
   PENDING = 'pending',
   APPROVED = 'approved',
   REJECTED = 'rejected'
 }
 
-export enum TransactionType {
-  IMPORT = 'import',
-  EXPORT = 'export',
-  WASTE = 'waste',
-  ADJUSTMENT = 'adjustment'
+/** Theo api.md - ReceiptStatus */
+export enum ReceiptStatus {
+  DRAFT = 'draft',
+  COMPLETED = 'completed',
+  CANCELLED = 'cancelled',
 }
 
+/** Theo api.md - BatchStatus */
 export enum BatchStatus {
   PENDING = 'pending',
   AVAILABLE = 'available',
@@ -57,10 +59,11 @@ export enum BatchStatus {
   EXPIRED = 'expired'
 }
 
-export enum UserRole {
-  ADMIN = 'admin',
-  MANAGER = 'manager',
-  SUPPLY_COORDINATOR = 'supply_coordinator',
-  CENTRAL_KITCHEN_STAFF = 'central_kitchen_staff',
-  FRANCHISE_STORE_STAFF = 'franchise_store_staff'
+/** Theo api.md - TransactionType */
+export enum TransactionType {
+  IMPORT = 'import',
+  EXPORT = 'export',
+  WASTE = 'waste',
+  ADJUSTMENT = 'adjustment'
 }
+

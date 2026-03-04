@@ -9,7 +9,7 @@ export const unstable_settings = {
   // Ensure that reloading on `/modal` keeps a back button present.
   initialRouteName: '(auth)',
 };
-// reload lấy token từ secure store ra, props vào authContext , từ authContextn đẩy vào zustand truyền trong api gọi 
+
 
 function RootLayoutNav() {
   const { isLoading, isAuthenticated } = useAuthContext();
@@ -40,8 +40,6 @@ function RootLayoutNav() {
         <Stack.Screen name="(auth)" />
         <Stack.Protected guard={isAuthenticated}>
           <Stack.Screen name="(franchise-staff)" />
-          {/* <Stack.Screen name="(kitchen-staff)" />
-          <Stack.Screen name="(coordinator)" /> */}
         </Stack.Protected>
       </Stack>
       <StatusBar style="auto" />

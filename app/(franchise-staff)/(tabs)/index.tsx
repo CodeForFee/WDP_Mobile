@@ -15,15 +15,16 @@ import { COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS } from '@/constants/theme'
 import { useSessionStore } from '@/stores/storeSession';
 import { useAuth } from '@/hooks/useAuth';
 import { useOrder } from '@/hooks/useOrder';
-import { User, Catelog, OrderMyStore } from '@/type';
+import { User, CatalogItem, OrderMyStore } from '@/type';
 import { handleErrorApi } from '@/lib/errors';
 
 export default function FranchiseDashboard() {
   const router = useRouter();
   const session = useSessionStore();
   const [user, setUser] = useState<User | null>(null);
-  const [catalog, setCatalog] = useState<Catelog[]>([]);
+  const [catalog, setCatalog] = useState<CatalogItem[]>([]);
   const [orders, setOrders] = useState<OrderMyStore[]>([]);
+
   const [loadingCatalog, setLoadingCatalog] = useState(false);
   const [loadingOrders, setLoadingOrders] = useState(false);
 
@@ -117,11 +118,11 @@ export default function FranchiseDashboard() {
   };
 
   // ProductCatalogDto - theo api.md: id, name, sku, unit (imageUrl optional)
-  const getCatalogImageUri = (item: Catelog): string | undefined =>
+  const getCatalogImageUri = (item: CatalogItem): string | undefined =>
     item.imageUrl;
 
   // Render Catalog Item
-  const renderCatalogItem = ({ item }: { item: Catelog }) => {
+  const renderCatalogItem = ({ item }: { item: CatalogItem }) => {
     const imageUri = getCatalogImageUri(item);
 
     return (
@@ -147,6 +148,7 @@ export default function FranchiseDashboard() {
       </Card>
     );
   };
+
 
   return (
     <View style={styles.container}>
