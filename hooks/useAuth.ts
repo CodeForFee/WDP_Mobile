@@ -1,43 +1,25 @@
-import api from "@/api/interceptor";
-import { ENDPOINT } from "@/api/endpoint";
-import { LoginInput, ResetPasswordInput } from "@/schemas/authSchema";
-import { AuthTokens, ResponseData, User } from "@/type";
+import { authRequest } from "@/apiRequest/auth";
+import { LoginInput, ResetPasswordInput, ForgotPasswordInput } from "@/schemas/authSchema";
 
 export const useAuth = {
-  login: async (loginInput: LoginInput): Promise<AuthTokens> => {
-    const res = await api.post<ResponseData<AuthTokens>>(
-      ENDPOINT.LOGIN,
-      loginInput,
-    );
+  login: async (loginInput: LoginInput) => {
+    const res = await authRequest.login(loginInput);
     return res.data.data;
   },
-
-  logout: async (refreshToken: string): Promise<void> => {
-    await api.post<ResponseData<{ message: string }>>(ENDPOINT.LOGOUT, {
-      refreshToken,
-    });
+  logout: async (refreshToken: string) => {
+    await authRequest.logout(refreshToken);
   },
-  forgotPassword: async (email: string): Promise<{message: string}> => {
-   const res = await api.post<ResponseData<{message: string}>>(
-      ENDPOINT.FORGOT_PASSWORD,
-      { email },
-    );
+  forgotPassword: async (email: string) => {
+    const res = await authRequest.forgotPassword({ email });
     return res.data.data;
-
   },
-  resetPassword: async (
-    resetPasswordInput: ResetPasswordInput,
-  ): Promise<{message: string}> => {
+  resetPassword: async (resetPasswordInput: ResetPasswordInput) => {
     const { confirmPassword, ...body } = resetPasswordInput;
-    const res = await api.post<ResponseData<{message: string}>>(
-      ENDPOINT.RESET_PASSWORD,
-      body,
-    );
+    const res = await authRequest.resetPassword(body);
     return res.data.data;
-   
   },
-  me: async (): Promise<User> => {
-    const res = await api.get<ResponseData<User>>(ENDPOINT.PROFILE);
+  me: async () => {
+    const res = await authRequest.me();
     return res.data.data;
   }
 };
