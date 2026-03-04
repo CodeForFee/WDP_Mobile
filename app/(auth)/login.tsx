@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -14,9 +14,10 @@ import { StatusBar } from 'expo-status-bar';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Input, Button } from '@/components/common';
-import { useAuthContext } from '@/contexts/authContext';
-import { authSchema, LoginInput } from '@/schemas/authSchema';
+import { useAuth } from '@/hooks/useAuth';
+import { LoginBody, LoginInput } from '@/schemas/authSchema';
 import { handleErrorApi } from '@/lib/errors';
+import { useSessionStore } from '@/stores/storeSession';
 import Svg, { Path } from 'react-native-svg';
 
 // --- GOOGLE ICON SVG ---
@@ -31,34 +32,36 @@ const GoogleIcon = () => (
 
 export default function LoginScreen() {
   const router = useRouter();
-  const { login } = useAuthContext();
-  const [loading, setLoading] = useState(false);
+  const session = useSessionStore();
+  const { loginMutation } = useAuth();
 
   const { control, handleSubmit, setError, formState: { errors } } = useForm<LoginInput>({
-    resolver: zodResolver(authSchema),
-    defaultValues: { email: 'jonnytran.working@gmail.com', password: 'pass123456789' },
+    resolver: zodResolver(LoginBody),
+    defaultValues: { email: '', password: '' },
   });
 
   const onSubmit = async (values: LoginInput) => {
     try {
-      setLoading(true);
-      await login(values);
-      router.replace('/(franchise-staff)/(tabs)');
+      const res = await loginMutation.mutateAsync(values);
+      if (res?.accessToken && res?.refreshToken) {
+        await session.login(res.accessToken, res.refreshToken);
+        router.replace('/(franchise-staff)/(tabs)');
+      }
     } catch (error) {
       handleErrorApi({ error, setError });
-    } finally {
-      setLoading(false);
     }
   };
+
+  const loading = loginMutation.isPending;
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.container}>
       <StatusBar style="dark" />
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        
+
         <View style={styles.header}>
-          <Image 
-            source={require('@/assets/images/logo.png')} 
+          <Image
+            source={require('@/assets/images/logo.png')}
             style={styles.logoImage}
             resizeMode="contain"
           />
@@ -106,11 +109,11 @@ export default function LoginScreen() {
             <Text style={styles.forgotText}>Forgot Password?</Text>
           </TouchableOpacity>
 
-          <Button 
-            title="Sign In" 
-            loading={loading} 
-            onPress={handleSubmit(onSubmit)} 
-            style={styles.signInBtn} 
+          <Button
+            title="Sign In"
+            loading={loading}
+            onPress={handleSubmit(onSubmit)}
+            style={styles.signInBtn}
           />
         </View>
 
@@ -125,7 +128,7 @@ export default function LoginScreen() {
             <GoogleIcon />
           </TouchableOpacity>
         </View>
-        
+
       </ScrollView>
     </KeyboardAvoidingView>
   );

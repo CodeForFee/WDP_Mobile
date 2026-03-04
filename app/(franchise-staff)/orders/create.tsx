@@ -1,155 +1,140 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, RefreshControl, Image } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, RefreshControl, Image } from 'react-native';
 import { LoadingSpinner } from '@/components/common';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStoreOrder } from '@/stores/storeOrder';
-import { useSessionStore } from '@/stores/storeSession';
 import { useOrder } from '@/hooks/useOrder';
 import { ProductCatalogDto } from '@/type';
-import { handleErrorApi } from '@/lib/errors';
 import { COLORS } from '@/constants/theme';
 
-/**
- * Trang tạo đơn: chỉ chọn món (thêm giỏ). Không chọn ngày/giờ, không gọi API tạo đơn.
- * "View Cart" → chuyển sang orders/cart để chọn ngày/giờ và xác nhận (API gọi ở đó).
- */
+import { PAGINATION_DEFAULT } from '@/constant';
+
 export default function CreateOrderScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { items, addItem, updateQuantity, removeItem } = useStoreOrder();
-  const [catalog, setCatalog] = useState<ProductCatalogDto[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
+  const { useCatalog } = useOrder();
   const [searchQuery, setSearchQuery] = useState('');
-  const { user } = useSessionStore();
 
-  useEffect(() => {
-    console.log('[CreateOrderScreen] Current User:', user);
-  }, [user]);
+  const {
+    data: catalog = [],
+    isLoading: loading,
+    refetch,
+    isRefetching: refreshing
+  } = useCatalog(PAGINATION_DEFAULT);
 
   const categories = ["Bakery", "Spring onions", "Bananas", "Pizza", "Cake"];
 
-  useEffect(() => { fetchCatalog(); }, []);
-
   const fetchCatalog = async () => {
-    setLoading(true);
-    try {
-      const res = await useOrder.getCatalog();
-      console.log('[CreateOrderScreen] Catalog API Response:', res);
-      const data = (res as any)?.items || res;
-      setCatalog(Array.isArray(data) ? (data as unknown as Product[]) : []);
-    } catch (error) {
-      handleErrorApi({ error });
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
+    refetch();
   };
 
   const filteredCatalog = (catalog || []).filter(p =>
     p.name?.toLowerCase().includes(searchQuery.toLowerCase())
   );
-  console.log('[CreateOrderScreen] Render - catalog length:', catalog.length, 'filteredCatalog length:', filteredCatalog.length);
+
+  const renderHeader = () => (
+    <View style={styles.headerBackground}>
+      <View style={styles.topActions}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.circleIcon}>
+          <Ionicons name="close" size={28} color="#000" />
+        </TouchableOpacity>
+        <View style={styles.topRightIcons}>
+          <View style={styles.avatarContainer}>
+            <Ionicons name="person" size={20} color="#666" />
+          </View>
+        </View>
+      </View>
+
+      <View style={styles.searchBar}>
+        <Ionicons name="search" size={20} color="#999" />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="I want to buy..."
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
+      </View>
+
+      <FlatList
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.tagScroll}
+        data={categories}
+        keyExtractor={(item, index) => index.toString()}
+        renderItem={({ item }) => (
+          <TouchableOpacity style={styles.tag}><Text style={styles.tagText}>{item}</Text></TouchableOpacity>
+        )}
+      />
+
+      <View style={styles.cardHeader}>
+        <Text style={styles.cardTitle}>Shopping list</Text>
+      </View>
+      {loading && <LoadingSpinner size={28} color={COLORS.primary} style={{ marginTop: 20 }} />}
+    </View>
+  );
+
+  const renderItem = ({ item: product }: { item: ProductCatalogDto }) => {
+    const inCart = items.find(i => i.id === product.id);
+    return (
+      <View style={styles.productItem}>
+        <View style={styles.imageContainer}>
+          {product.imageUrl ? (
+            <Image source={{ uri: product.imageUrl }} style={styles.productImage} resizeMode="cover" />
+          ) : (
+            <View style={[styles.productImage, { backgroundColor: '#EEE', justifyContent: 'center', alignItems: 'center' }]}>
+              <Ionicons name="image-outline" size={24} color="#CCC" />
+            </View>
+          )}
+        </View>
+
+        <View style={styles.productDetails}>
+          <Text style={styles.productName}>{product.name}</Text>
+          <Text style={styles.productSub}>{product.unit || '1pcs'}</Text>
+        </View>
+
+        <View style={styles.quantityContainer}>
+          <TouchableOpacity
+            onPress={() => inCart && (inCart.quantity > 1 ? updateQuantity(product.id, inCart.quantity - 1) : removeItem(product.id))}
+            style={styles.qtyBtn}
+          >
+            <Ionicons name="remove" size={18} color="#555" />
+          </TouchableOpacity>
+
+          <Text style={styles.qtyText}>{inCart?.quantity || 0}</Text>
+
+          <TouchableOpacity
+            onPress={() => inCart ? updateQuantity(product.id, inCart.quantity + 1) : addItem({
+              id: product.id,
+              quantity: 1,
+              name: product.name,
+              unit: product.unit,
+              image_url: product.imageUrl
+            })}
+            style={[styles.qtyBtn, { backgroundColor: COLORS.primary }]}
+          >
+            <Ionicons name="add" size={18} color="#FFF" />
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  };
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      {/* Header Section */}
-      <View style={styles.headerBackground}>
-        <View style={styles.topActions}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.circleIcon}>
-            <Ionicons name="close" size={28} color="#000" />
-          </TouchableOpacity>
-          <View style={styles.topRightIcons}>
-            {/* Avatar: Using a user icon for now as specific avatar URL isn't in User type */}
-            <View style={styles.avatarContainer}>
-              <Ionicons name="person" size={20} color="#666" />
-            </View>
-          </View>
-        </View>
-
-        <View style={styles.searchBar}>
-          <Ionicons name="search" size={20} color="#999" />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="I want to buy..."
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-        </View>
-
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tagScroll}>
-          {categories.map((cat, i) => (
-            <TouchableOpacity key={i} style={styles.tag}><Text style={styles.tagText}>{cat}</Text></TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
-
-      {/* Product List */}
-      <View style={styles.whiteCardContainer}>
-        <View style={styles.whiteCard}>
-          <View style={styles.cardHeader}>
-            <Text style={styles.cardTitle}>Shopping list</Text>
-          </View>
-          <ScrollView
-            style={{ flex: 1 }}
-            showsVerticalScrollIndicator={false}
-            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={fetchCatalog} />}
-            contentContainerStyle={{ paddingBottom: 100 + insets.bottom }} // Extra padding for floating cart + safe area
-          >
-            {loading && <LoadingSpinner size={28} color={COLORS.primary} style={{ marginTop: 20 }} />}
-            {filteredCatalog.map((product) => {
-              const inCart = items.find(i => i.id === product.id);
-              return (
-                <View key={product.id} style={styles.productItem}>
-                  {/* Product Image */}
-                  <View style={styles.imageContainer}>
-                    {product.imageUrl ? (
-                      <Image source={{ uri: product.imageUrl }} style={styles.productImage} resizeMode="cover" />
-                    ) : (
-                      <View style={[styles.productImage, { backgroundColor: '#EEE', justifyContent: 'center', alignItems: 'center' }]}>
-                        <Ionicons name="image-outline" size={24} color="#CCC" />
-                      </View>
-                    )}
-                  </View>
-
-                  {/* Info */}
-                  <View style={styles.productDetails}>
-                    <Text style={styles.productName}>{product.name}</Text>
-                    <Text style={styles.productSub}>{product.unit || '1pcs'}</Text>
-                  </View>
-
-                  {/* Quantity Controls */}
-                  <View style={styles.quantityContainer}>
-                    <TouchableOpacity
-                      onPress={() => inCart && (inCart.quantity > 1 ? updateQuantity(product.id, inCart.quantity - 1) : removeItem(product.id))}
-                      style={styles.qtyBtn}
-                    >
-                      <Ionicons name="remove" size={18} color="#555" />
-                    </TouchableOpacity>
-
-                    <Text style={styles.qtyText}>{inCart?.quantity || 0}</Text>
-
-                    <TouchableOpacity
-                      onPress={() => inCart ? updateQuantity(product.id, inCart.quantity + 1) : addItem({
-                        id: product.id,
-                        quantity: 1,
-                        name: product.name,
-                        unit: product.unit,
-                        image_url: product.imageUrl
-                      })}
-                      style={[styles.qtyBtn, { backgroundColor: COLORS.primary }]}
-                    >
-                      <Ionicons name="add" size={18} color="#FFF" />
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              );
-            })}
-          </ScrollView>
-        </View>
-      </View>
+      <FlatList
+        data={filteredCatalog}
+        keyExtractor={(item) => String(item.id)}
+        renderItem={renderItem}
+        ListHeaderComponent={renderHeader}
+        ListFooterComponent={<View style={{ height: 100 + insets.bottom }} />}
+        style={styles.whiteCardContainer}
+        contentContainerStyle={styles.whiteCard}
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={fetchCatalog} />}
+      />
 
       {items.length > 0 && (
         <View style={[styles.floatingCart, { bottom: 30 + insets.bottom }]}>
@@ -172,6 +157,7 @@ export default function CreateOrderScreen() {
 }
 
 const styles = StyleSheet.create({
+
   container: { flex: 1, backgroundColor: COLORS.primary },
   headerBackground: { padding: 20, paddingTop: 10, paddingBottom: 20 },
   topActions: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 },

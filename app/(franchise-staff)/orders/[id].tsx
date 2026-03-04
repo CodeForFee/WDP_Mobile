@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -6,7 +6,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '@/constants/theme';
 import { LoadingSpinner, Button } from '@/components/common';
 import { useOrder } from '@/hooks/useOrder';
-import { OrderDetail } from '@/type';
 import { OrderStatus } from '@/enum';
 import { handleErrorApi } from '@/lib/errors';
 
@@ -43,23 +42,12 @@ const ZigzagDivider = () => (
 export default function OrderDetailsScreen() {
     const { id } = useLocalSearchParams();
     const router = useRouter();
-    const [order, setOrder] = useState<OrderDetail | null>(null);
-    const [loading, setLoading] = useState(true);
+    const { useOrderDetail, cancelOrderMutation } = useOrder();
 
-    useEffect(() => {
-        if (id) fetchOrderDetails();
-    }, [id]);
-
-    const fetchOrderDetails = async () => {
-        try {
-            const data = await useOrder.getOrderById(id as string);
-            setOrder(data);
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setLoading(false);
-        }
-    };
+    const {
+        data: order,
+        isLoading
+    } = useOrderDetail(id as string);
 
     const handleCancelOrder = () => {
         Alert.alert('Xác nhận', 'Bạn có chắc muốn hủy đơn hàng này?', [
@@ -67,24 +55,25 @@ export default function OrderDetailsScreen() {
             {
                 text: 'Có, hủy đơn',
                 style: 'destructive',
-                onPress: async () => {
-                    setLoading(true);
-                    try {
-                        await useOrder.cancelOrder(order!.id);
-                        Alert.alert('Thành công', 'Đã hủy đơn hàng', [
-                            { text: 'OK', onPress: () => router.back() }
-                        ]);
-                    } catch (error) {
-                        handleErrorApi({ error });
-                    } finally {
-                        setLoading(false);
-                    }
+                onPress: () => {
+                    cancelOrderMutation.mutate(id as string, {
+                        onSuccess: () => {
+                            Alert.alert('Thành công', 'Đã hủy đơn hàng', [
+                                { text: 'OK', onPress: () => router.back() }
+                            ]);
+                        },
+                        onError: (error) => {
+                            handleErrorApi({ error });
+                        },
+                    });
                 },
             },
         ]);
     };
 
-    if (loading) return <View style={styles.center}><LoadingSpinner size={40} color="#89A54D" /></View>;
+    if (isLoading || cancelOrderMutation.isPending) {
+        return <View style={styles.center}><LoadingSpinner size={40} color="#89A54D" /></View>;
+    }
     if (!order) return null;
 
     return (
@@ -95,9 +84,9 @@ export default function OrderDetailsScreen() {
                     <Ionicons name="arrow-back" size={24} color="#000" />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Order details</Text>
-                <View style={{ width: 40 }} /> 
+                <View style={{ width: 40 }} />
             </View>
-            
+
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
                 {/* Status Banner - màu theo status */}
                 {(() => {
@@ -106,9 +95,9 @@ export default function OrderDetailsScreen() {
                         <View style={[styles.statusBanner, { backgroundColor: statusColors.bg }]}>
                             <Text style={[styles.statusLabel, { color: statusColors.text }]}>{order.status.charAt(0).toUpperCase() + order.status.slice(1)}</Text>
                             <Text style={[styles.statusDate, { color: statusColors.text, opacity: 0.9 }]}>
-                        {new Date(order.updatedAt ?? order.createdAt).toLocaleString('en-US', { 
-                            weekday: 'long', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' 
-                        })}
+                                {new Date(order.createdAt).toLocaleString('en-US', {
+                                    weekday: 'long', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                                })}
                             </Text>
                         </View>
                     );
@@ -117,13 +106,13 @@ export default function OrderDetailsScreen() {
                 {/* Receipt Card */}
                 <View style={styles.receiptMain}>
                     <Text style={styles.orderNumber}>№{order.id.slice(0, 8).toUpperCase()}</Text>
-                    
+
                     {order.items.map((item, index) => (
                         <View key={index} style={styles.itemRow}>
-                            <Image source={{ uri: item.product?.imageUrl }} style={styles.productImg} />
+                            <Image source={item.product?.imageUrl ? { uri: item.product.imageUrl } : undefined} style={styles.productImg} />
                             <Text style={styles.productInfo}>
-                                <Text style={{ fontWeight: '800' }}>{item.quantityRequested ?? item.requestedQty ?? '-'} × </Text>
-                                {item.productName ?? item.product?.name ?? 'Sản phẩm'}
+                                <Text style={{ fontWeight: '800' }}>{item.quantityRequested ?? '-'} × </Text>
+                                {item.product?.name ?? 'Sản phẩm'}
                             </Text>
                         </View>
                     ))}
@@ -140,7 +129,7 @@ export default function OrderDetailsScreen() {
                 {/* Store Info Section */}
                 <View style={styles.storeSection}>
                     <Text style={styles.sectionHeading}>STORE INFORMATION</Text>
-                    
+
                     <View style={styles.infoBlock}>
                         <View style={styles.iconBox}><Ionicons name="gift" size={18} color="#89A54D" /></View>
                         <View>

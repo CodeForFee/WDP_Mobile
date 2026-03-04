@@ -28,24 +28,8 @@ export default function ProfileScreen() {
   const router = useRouter();
   const session = useSessionStore();
   const { logout: logoutContext } = useAuthContext();
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchUserProfile();
-  }, []);
-
-  const fetchUserProfile = async () => {
-    setLoading(true);
-    try {
-      const userData = await useAuth.me();
-      setUser(userData);
-    } catch (error) {
-      handleErrorApi({ error });
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { useMe } = useAuth();
+  const { data: user, isLoading } = useMe();
 
   const handleLogout = async () => {
     await logoutContext();
@@ -56,7 +40,7 @@ export default function ProfileScreen() {
   const displayRole = user?.role || session.user?.role || 'Staff';
   const displayStore = session.user?.storeId ? `Store #${session.user.storeId}` : '';
 
-  if (loading) {
+  if (isLoading) {
     return (
       <View style={styles.container}>
         <View style={styles.loadingContainer}>

@@ -10,9 +10,6 @@ export const authRequest = {
     // POST /auth/logout : đăng xuất
     logout: (refreshToken: string) => api.post<ResponseData<{ message: string }>>(ENDPOINT.LOGOUT, { refreshToken }),
 
-    // POST /auth/refresh : làm mới token
-    refreshToken: (refreshToken: string) => api.post<ResponseData<AuthTokens>>(ENDPOINT.REFRESH, { refreshToken }),
-
     // POST /auth/forgot-password : quên mật khẩu
     forgotPassword: (data: ForgotPasswordInput) => api.post<ResponseData<{ message: string }>>(ENDPOINT.FORGOT_PASSWORD, data),
 
@@ -22,3 +19,4 @@ export const authRequest = {
     // GET /auth/me : xem thông tin cá nhân
     me: () => api.get<ResponseData<User>>(ENDPOINT.PROFILE),
 };
+
