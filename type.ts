@@ -55,6 +55,9 @@ export type User = {
   storeId: string | null;
   status: string;
   createdAt: string;
+  fullName?: string;
+  phone?: string;
+  avatar?: string;
 }
 
 /* ================= STORE TYPES ================= */

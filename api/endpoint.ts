@@ -10,6 +10,8 @@ export const ENDPOINT = {
     FORGOT_PASSWORD: '/auth/forgot-password',
     RESET_PASSWORD: '/auth/reset-password',
     PROFILE: '/auth/me',
+    UPDATE_PROFILE: '/auth/profile',
+    UPLOAD_IMAGE: '/upload/image',
 
     // Orders
     ORDER_CATALOG: '/orders/catalog',

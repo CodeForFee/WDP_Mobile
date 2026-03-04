@@ -50,3 +50,11 @@ export const RefreshTokenBody = z.object({
 });
 
 export type RefreshTokenBodyType = z.infer<typeof RefreshTokenBody>;
+
+export const UpdateProfileBody = z.object({
+  fullName: z.string().optional(),
+  phone: z.string().optional(),
+  email: z.string().email("Email không hợp lệ").optional(),
+});
+
+export type UpdateProfileBodyType = z.infer<typeof UpdateProfileBody>;

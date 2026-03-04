@@ -1,5 +1,6 @@
 import { authRequest } from "@/apiRequest/auth";
-import { LoginInput, ResetPasswordInput, ForgotPasswordInput } from "@/schemas/authSchema";
+import { uploadRequest } from "@/apiRequest/upload";
+import { LoginInput, ResetPasswordInput, ForgotPasswordInput, UpdateProfileBody } from "@/schemas/authSchema";
 
 export const useAuth = {
   login: async (loginInput: LoginInput) => {
@@ -21,5 +22,24 @@ export const useAuth = {
   me: async () => {
     const res = await authRequest.me();
     return res.data.data;
-  }
+  },
+  updateProfile: async (data: UpdateProfileBody) => {
+    const res = await authRequest.updateProfile(data);
+    return res.data.data;
+  },
+  uploadAvatar: async (uri: string) => {
+    const filename = uri.split('/').pop() || 'avatar.jpg';
+    const match = /\.(\w+)$/.exec(filename);
+    const type = match ? `image/${match[1]}` : 'image/jpeg';
+
+    const formData = new FormData();
+    formData.append('file', {
+      uri,
+      name: filename,
+      type,
+    } as any);
+
+    const result = await uploadRequest.uploadImage(formData);
+    return result.url;
+  },
 };

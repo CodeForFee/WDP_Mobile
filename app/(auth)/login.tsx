@@ -15,7 +15,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Input, Button } from '@/components/common';
 import { useAuthContext } from '@/contexts/authContext';
-import { authSchema, LoginInput } from '@/schemas/authSchema';
+import { LoginBody, LoginInput } from '@/schemas/authSchema';
 import { handleErrorApi } from '@/lib/errors';
 import Svg, { Path } from 'react-native-svg';
 
@@ -35,7 +35,7 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
 
   const { control, handleSubmit, setError, formState: { errors } } = useForm<LoginInput>({
-    resolver: zodResolver(authSchema),
+    resolver: zodResolver(LoginBody),
     defaultValues: { email: 'jonnytran.working@gmail.com', password: 'pass123456789' },
   });
 

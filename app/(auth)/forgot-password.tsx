@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '@/hooks/useAuth';
-import { ResetPasswordInput, resetPasswordSchema } from '@/schemas/authSchema';
+import { ResetPasswordInput, ResetPasswordBody } from '@/schemas/authSchema';
 import { COLORS, SPACING, TYPOGRAPHY } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -25,7 +25,7 @@ export default function ForgotPasswordScreen() {
     trigger,
     formState: { errors },
   } = useForm<ResetPasswordInput>({
-    resolver: zodResolver(resetPasswordSchema),
+    resolver: zodResolver(ResetPasswordBody),
     defaultValues: {
       email: '',
       code: '',

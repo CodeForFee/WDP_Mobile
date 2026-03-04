@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { AddItemButton } from '@/components/inventory/AddItemButton';
 import { InventoryCard } from '@/components/inventory/InventoryCard';
-import { useInventory, InventoryStoreItem } from '@/hooks/useInventory';
+import { inventoryRequest } from '@/hooks/useInventory';
 import { useFocusEffect } from '@react-navigation/native';
 import { LoadingSpinner } from '@/components/common';
 import { COLORS } from '@/constants/theme';
@@ -18,22 +18,23 @@ export default function StoreInventoryScreen() {
   const fetchInventory = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await useInventory.getInventoryStore();
+      const res = await inventoryRequest.getInventoryStore();
       console.log('[StoreInventoryScreen] Inventory API Response:', res);
-      const data = (res as any)?.items || res;
+      const data = (res as any)?.data?.data?.items || (res as any)?.data?.items || [];
 
       if (Array.isArray(data)) {
-        const mappedData = data.map((item: InventoryStoreItem) => ({
-          id: item.id,
-          name: item.product?.name || 'Unknown Product',
-          calories: 'N/A', // Not in current API
-          stock: item.availableQuantity,
-          maxStock: item.maxStockLevel,
-          price: 0, // Not in current inventory API
-          image: item.product?.imageUrl,
-          description: item.product?.sku || '',
+        const mappedData = data.map((item: any) => ({
+          id: item.inventoryId,
+          name: item.productName || 'Unknown Product',
+          stock: item.quantity,
+          unit: item.unit || '',
+          expiryDate: item.expiryDate,
+          image: item.imageUrl,
+          description: item.sku || item.batchCode || '',
+          batchCode: item.batchCode,
+          batchId: item.batchId,
         }));
-        console.log('[StoreInventoryScreen] Mapped Inventory Items:', mappedData);
+        // console.log('[StoreInventoryScreen] Mapped Inventory Items:', mappedData);
         setInventoryItems(mappedData);
       }
     } catch (error) {
@@ -50,7 +51,7 @@ export default function StoreInventoryScreen() {
     }, [fetchInventory])
   );
 
-  console.log('[StoreInventoryScreen] Rendering - items count:', inventoryItems.length);
+  // console.log('[StoreInventoryScreen] Rendering - items count:', inventoryItems.length);
 
   const handleRefresh = useCallback(() => {
     setRefreshing(true);
