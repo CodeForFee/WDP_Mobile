@@ -1,59 +1,94 @@
-import React from 'react';
-import { View, StyleSheet, ScrollView, Text, TouchableOpacity } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { View, StyleSheet, ScrollView, Text, TouchableOpacity, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { AddItemButton } from '@/components/inventory/AddItemButton';
 import { InventoryCard } from '@/components/inventory/InventoryCard';
+import { inventoryRequest } from '@/hooks/useInventory';
+import { useFocusEffect } from '@react-navigation/native';
+import { LoadingSpinner } from '@/components/common';
+import { COLORS } from '@/constants/theme';
+import { handleErrorApi } from '@/lib/errors';
 
 export default function StoreInventoryScreen() {
-  const inventoryItems = [
-    {
-      id: '1',
-      name: 'Beef Burger',
-      calories: '450 cal',
-      stock: 25,
-      maxStock: 25,
-      price: 14,
-      image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=300',
-      description: 'Homemade beef cutlet with signature...',
-    },
-    {
-      id: '2',
-      name: 'Meat Grill',
-      calories: '450 cal',
-      stock: 23,
-      maxStock: 25,
-      price: 14,
-      image: 'https://images.unsplash.com/photo-1603048297172-c92544798d5e?w=300',
-      description: 'Homemade beef cutlet with signature...',
+  const [inventoryItems, setInventoryItems] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchInventory = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await inventoryRequest.getInventoryStore();
+      const data = (res as any)?.data?.data?.items || (res as any)?.data?.items || [];
+
+      if (Array.isArray(data)) {
+        const mappedData = data.map((item: any) => ({
+          id: item.inventoryId,
+          name: item.productName || 'Unknown Product',
+          stock: item.quantity,
+          unit: item.unit || '',
+          expiryDate: item.expiryDate,
+          image: item.imageUrl,
+          description: item.sku || item.batchCode || '',
+          batchCode: item.batchCode,
+          batchId: item.batchId,
+        }));
+        // console.log('[StoreInventoryScreen] Mapped Inventory Items:', mappedData);
+        setInventoryItems(mappedData);
+      }
+    } catch (error) {
+      handleErrorApi({ error });
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
-  ];
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchInventory();
+    }, [fetchInventory])
+  );
+
+  // console.log('[StoreInventoryScreen] Rendering - items count:', inventoryItems.length);
+
+  const handleRefresh = useCallback(() => {
+    setRefreshing(true);
+    fetchInventory();
+  }, [fetchInventory]);
+
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Header gọn gàng */}
-      <View style={styles.header}>
-        <View style={{ width: 40 }} />
-        <Text style={styles.headerTitle}>Inventory</Text>
-        <TouchableOpacity style={styles.settingsBtn}>
-          <Ionicons name="settings-sharp" size={20} color="#000" />
-        </TouchableOpacity>
-      </View>
 
-      <ScrollView contentContainerStyle={styles.listContent} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={COLORS.primary} />}
+      >
 
         {/* Nút Add Item ở vị trí cũ phía trên Grid */}
-        <AddItemButton onPress={() => console.log('Add Item Clicked')} />
+        <AddItemButton onPress={() => {}} />
+
+        {loading && !refreshing && (
+          <View style={{ marginTop: 20, alignItems: 'center' }}><LoadingSpinner size={32} color={COLORS.primary} /></View>
+        )}
 
         <View style={styles.grid}>
           {inventoryItems.map((item) => (
             <InventoryCard
               key={item.id}
               item={item}
-              onPress={() => console.log('Detail', item.id)}
+              onPress={() => {}}
             />
           ))}
         </View>
+
+        {inventoryItems.length === 0 && !loading && (
+          <View style={{ alignItems: 'center', marginTop: 40 }}>
+            <Text style={{ color: '#999' }}>No inventory items found</Text>
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );

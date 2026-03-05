@@ -51,7 +51,7 @@ export const AuthProvider = ({
     if (res?.accessToken && res?.refreshToken) {
       await session.login(res.accessToken, res.refreshToken);
       // redirerct home
-        router.replace('/(franchise-staff)');
+        router.replace('/(franchise-staff)/(tabs)');
     }
   };
 

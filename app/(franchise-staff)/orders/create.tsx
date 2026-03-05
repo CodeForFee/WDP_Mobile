@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStoreOrder } from '@/stores/storeOrder';
+import { useSessionStore } from '@/stores/storeSession';
 import { useOrder } from '@/hooks/useOrder';
 import { ProductCatalogDto } from '@/type';
 import { handleErrorApi } from '@/lib/errors';
@@ -22,17 +23,24 @@ export default function CreateOrderScreen() {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const { user } = useSessionStore();
 
-  const categories = ["Bakery", "Spring onions", "Bananas", "Pizza", "Cake"];
+  // Computed values for cart
+  const cartTotalItems = items.reduce((sum, item) => sum + item.quantity, 0);
+
+  useEffect(() => {
+    console.log('[CreateOrderScreen] Current User:', user);
+  }, [user]);
 
   useEffect(() => { fetchCatalog(); }, []);
 
   const fetchCatalog = async () => {
     setLoading(true);
     try {
-      const data = await useOrder.getCatalog();
-      // Cast to Product[] assuming API returns imageUrl etc.
-      setCatalog(data);
+      const res = await useOrder.getCatalog();
+      console.log('[CreateOrderScreen] Catalog API Response:', res);
+      const data = (res as any)?.items || res;
+      setCatalog(Array.isArray(data) ? (data as unknown as Product[]) : []);
     } catch (error) {
       handleErrorApi({ error });
     } finally {
@@ -41,9 +49,10 @@ export default function CreateOrderScreen() {
     }
   };
 
-  const filteredCatalog = catalog.filter(p =>
-    p.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredCatalog = (catalog || []).filter(p =>
+    p.name?.toLowerCase().includes(searchQuery.toLowerCase())
   );
+  console.log('[CreateOrderScreen] Render - catalog length:', catalog.length, 'filteredCatalog length:', filteredCatalog.length);
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -70,12 +79,6 @@ export default function CreateOrderScreen() {
             onChangeText={setSearchQuery}
           />
         </View>
-
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tagScroll}>
-          {categories.map((cat, i) => (
-            <TouchableOpacity key={i} style={styles.tag}><Text style={styles.tagText}>{cat}</Text></TouchableOpacity>
-          ))}
-        </ScrollView>
       </View>
 
       {/* Product List */}
@@ -85,6 +88,7 @@ export default function CreateOrderScreen() {
             <Text style={styles.cardTitle}>Shopping list</Text>
           </View>
           <ScrollView
+            style={{ flex: 1 }}
             showsVerticalScrollIndicator={false}
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={fetchCatalog} />}
             contentContainerStyle={{ paddingBottom: 100 + insets.bottom }} // Extra padding for floating cart + safe area
@@ -128,7 +132,7 @@ export default function CreateOrderScreen() {
                         quantity: 1,
                         name: product.name,
                         unit: product.unit,
-                        image_url: product.imageUrl ?? (product as any).image_url
+                        image_url: product.imageUrl
                       })}
                       style={[styles.qtyBtn, { backgroundColor: COLORS.primary }]}
                     >
@@ -143,20 +147,18 @@ export default function CreateOrderScreen() {
       </View>
 
       {items.length > 0 && (
-        <View style={[styles.floatingCart, { bottom: 30 + insets.bottom }]}>
-          <TouchableOpacity
-            style={styles.cartContent}
-            onPress={() => router.push('/(franchise-staff)/orders/cart' as any)}
-          >
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <View style={styles.cartIconBadge}>
-                <Text style={{ color: COLORS.primary, fontWeight: 'bold' }}>{items.length}</Text>
-              </View>
-              <Text style={styles.viewCartText}> View Cart</Text>
+        <TouchableOpacity
+          style={[styles.floatingCart, { bottom: 30 + insets.bottom }]}
+          onPress={() => router.push('/(franchise-staff)/orders/cart' as any)}
+        >
+          <View style={styles.cartLeft}>
+            <View style={styles.cartBadge}>
+              <Text style={styles.cartBadgeText}>{cartTotalItems}</Text>
             </View>
-            <Ionicons name="chevron-forward" size={20} color="#FFF" />
-          </TouchableOpacity>
-        </View>
+            <Text style={styles.cartText}>View Cart</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color="#FFF" />
+        </TouchableOpacity>
       )}
     </View>
   );
@@ -171,9 +173,6 @@ const styles = StyleSheet.create({
   avatarContainer: { width: 45, height: 45, borderRadius: 22.5, backgroundColor: '#FFF', justifyContent: 'center', alignItems: 'center' },
   searchBar: { backgroundColor: '#FFF', borderRadius: 25, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 15, height: 50 },
   searchInput: { flex: 1, marginLeft: 10, fontSize: 16 },
-  tagScroll: { marginTop: 15 },
-  tag: { backgroundColor: 'rgba(255,255,255,0.3)', paddingHorizontal: 15, paddingVertical: 8, borderRadius: 20, marginRight: 8 },
-  tagText: { fontWeight: '600', color: '#FFF' },
   whiteCardContainer: { flex: 1, backgroundColor: '#FFF', borderTopLeftRadius: 35, borderTopRightRadius: 35, overflow: 'hidden' },
   whiteCard: { flex: 1, padding: 20, paddingBottom: 0 },
   cardHeader: { marginBottom: 15 },
@@ -187,8 +186,9 @@ const styles = StyleSheet.create({
   quantityContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F5F5F5', borderRadius: 25, padding: 4 },
   qtyBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#FFF', justifyContent: 'center', alignItems: 'center', shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 },
   qtyText: { marginHorizontal: 12, fontWeight: 'bold', minWidth: 20, textAlign: 'center' },
-  floatingCart: { position: 'absolute', left: 20, right: 20, backgroundColor: '#000', borderRadius: 30, height: 60, justifyContent: 'center', paddingHorizontal: 20, shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 4.65, elevation: 8 },
-  cartContent: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  cartIconBadge: { backgroundColor: '#FFF', width: 24, height: 24, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginRight: 10 },
-  viewCartText: { color: '#FFF', fontWeight: 'bold', fontSize: 16 },
+  floatingCart: { position: 'absolute', left: 20, right: 20, backgroundColor: '#000', borderRadius: 30, height: 60, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 4.65, elevation: 8 },
+  cartLeft: { flexDirection: 'row', alignItems: 'center' },
+  cartBadge: { backgroundColor: '#FFF', width: 24, height: 24, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginRight: 8 },
+  cartBadgeText: { color: COLORS.primary, fontWeight: 'bold', fontSize: 12 },
+  cartText: { color: '#FFF', fontWeight: 'bold', fontSize: 16 },
 });

@@ -26,5 +26,44 @@ export enum OrderStatus {
   PICKING = 'picking',
   DELIVERING = 'delivering',
   COMPLETED = 'completed',
-  CLAIMED = 'claimed',
+  CLAIMED = 'claimed'
 }
+
+/** Theo api.md - ShipmentStatus */
+export enum ShipmentStatus {
+  PREPARING = 'preparing',
+  IN_TRANSIT = 'in_transit',
+  DELIVERED = 'delivered',
+  COMPLETED = 'completed',
+}
+
+/** Theo api.md - ClaimStatus */
+export enum ClaimStatus {
+  PENDING = 'pending',
+  APPROVED = 'approved',
+  REJECTED = 'rejected'
+}
+
+/** Theo api.md - ReceiptStatus */
+export enum ReceiptStatus {
+  DRAFT = 'draft',
+  COMPLETED = 'completed',
+  CANCELLED = 'cancelled',
+}
+
+/** Theo api.md - BatchStatus */
+export enum BatchStatus {
+  PENDING = 'pending',
+  AVAILABLE = 'available',
+  EMPTY = 'empty',
+  EXPIRED = 'expired'
+}
+
+/** Theo api.md - TransactionType */
+export enum TransactionType {
+  IMPORT = 'import',
+  EXPORT = 'export',
+  WASTE = 'waste',
+  ADJUSTMENT = 'adjustment'
+}
+
