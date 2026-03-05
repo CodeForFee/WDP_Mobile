@@ -34,7 +34,7 @@ export default function ReceiveGoodsScreen() {
   const fetchShipments = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await shipmentApi.getMyStoreShipments({});
+      const res = await shipmentApi.getMyStoreShipments({ sortOrder: 'DESC' });
       const data = (res as any)?.items || res;
       // Lọc chỉ lấy đơn đang chuẩn bị và đang vận chuyển
       const filtered = Array.isArray(data)
