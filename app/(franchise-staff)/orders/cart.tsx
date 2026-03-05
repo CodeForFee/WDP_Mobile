@@ -27,8 +27,7 @@ export default function ConfirmOrderScreen() {
   const insets = useSafeAreaInsets();
 
   const { items, updateQuantity, removeItem, clearItems } = useStoreOrder();
-
-  const [loading, setLoading] = useState(false);
+  const { createOrderMutation } = useOrder();
 
   const [deliveryDate, setDeliveryDate] = useState(
     new Date(Date.now() + 24 * 60 * 60 * 1000)
@@ -95,10 +94,8 @@ export default function ConfirmOrderScreen() {
       return;
     }
 
-    setLoading(true);
-
     try {
-      const newOrder = await useOrder.createOrder(payload);
+      const newOrder = await createOrderMutation.mutateAsync(payload);
 
       // Success
       clearItems();
@@ -126,11 +123,10 @@ export default function ConfirmOrderScreen() {
       } else {
         handleErrorApi({ error });
       }
-
-    } finally {
-      setLoading(false);
     }
   };
+
+  const loading = createOrderMutation.isPending;
 
   // ================= UI =================
 

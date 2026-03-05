@@ -7,9 +7,9 @@ export const ReceiveShipmentBody = z.object({
         damagedQty: z.number().int().min(0, 'Số lượng hàng hỏng không hợp lệ'),
         evidenceUrls: z.array(z.string()).optional()
     })),
-    notes: z.string().optional(),
-    evidenceUrls: z.array(z.string()).optional()
+    notes: z.string().optional()
 });
+
 
 export type ReceiveShipmentBodyType = z.infer<typeof ReceiveShipmentBody>;
 

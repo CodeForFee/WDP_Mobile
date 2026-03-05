@@ -7,18 +7,42 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
 
+import { inventoryRequest } from '@/apiRequest/inventory';
+import { useInventory } from '@/hooks/useInventory';
+import { PAGINATION_DEFAULT } from '@/constant';
+import { LoadingSpinner } from '@/components/common';
+
 export default function InventoryDetailScreen() {
     const { id } = useLocalSearchParams();
     const router = useRouter();
+    const { useStoreInventory } = useInventory();
+    const { data: rawData = [], isLoading } = useStoreInventory(PAGINATION_DEFAULT);
 
-    // Mock Data matching the "Beef burger" design
+    const inventoryItem = rawData.find(item => String(item.inventoryId || item.batchId) === id);
+
+    if (isLoading) {
+        return <View style={styles.center}><LoadingSpinner size={40} color={COLORS.primary} /></View>;
+    }
+
+    if (!inventoryItem) {
+        return (
+            <View style={styles.center}>
+                <Text style={{ color: COLORS.textMuted }}>Không tìm thấy sản phẩm trong kho.</Text>
+                <TouchableOpacity onPress={() => router.back()} style={{ marginTop: 20 }}>
+                    <Text style={{ color: COLORS.primary, fontWeight: 'bold' }}>Quay lại</Text>
+                </TouchableOpacity>
+            </View>
+        );
+    }
+
+    // Combine actual data with premium mock detail fields
     const item = {
         id: id,
-        name: 'Beef burger',
+        name: inventoryItem.productName || 'Sản phẩm',
         calories: 749,
         price: 14,
-        description: 'Homemade beef cutlet with a special sauce with parmesan and mustard will not leave you indifferent. The crispy rice flour bun will impress you with its irresistibility.',
-        image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+        description: `Lô hàng: ${inventoryItem.batchCode}\nSKU: ${inventoryItem.sku}\nNgày hết hạn: ${new Date(inventoryItem.expiryDate).toLocaleDateString('vi-VN')}`,
+        image: inventoryItem.imageUrl || 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
         nutrition: {
             Energy: '749kcal',
             Carbs: '36g',
@@ -272,5 +296,11 @@ const styles = StyleSheet.create({
         fontSize: TYPOGRAPHY.fontSize.xs,
         color: COLORS.textSecondary,
         fontWeight: '500',
+    },
+    center: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20,
     },
 });

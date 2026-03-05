@@ -5,23 +5,28 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  FlatList,
   Alert,
-  RefreshControl,
-  StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter, useFocusEffect } from 'expo-router';
+
 import { COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS } from '@/constants/theme';
-import { Card, StatusBadge, Button, LoadingSpinner } from '@/components/common';
+import { Card, StatusBadge, Button, Header, LoadingSpinner, getStatusType } from '@/components/common';
 import { useShipment } from '@/hooks/useShipment';
-import { Shipment, ShipmentDetail, ShipmentItem } from '@/type';
+import { PAGINATION_DEFAULT } from '@/constant';
 import { handleErrorApi } from '@/lib/errors';
+import { ShipmentStatus } from '@/enum';
+
+const checklistItems = [
+  { id: '1', title: 'Temperature Check', desc: 'Verify all frozen items are below 0°F', icon: 'thermometer', status: 'pending' },
+  { id: '2', title: 'Package Integrity', desc: 'Check for damaged or torn packaging', icon: 'cube', status: 'pending' },
+  { id: '3', title: 'Expiration Dates', desc: 'Verify all products are within shelf life', icon: 'calendar', status: 'pending' },
+  { id: '4', title: 'Quantity Verification', desc: 'Count and verify all items match order', icon: 'list', status: 'pending' },
+];
 
 export default function ReceiveGoodsScreen() {
-  const router = useRouter();
-  const shipmentApi = useShipment;
+  const { useMyStoreShipments, receiveAllMutation } = useShipment(); // Destructured receiveAllMutation
+  const { data: shipments = [], isLoading, refetch } = useMyStoreShipments(PAGINATION_DEFAULT); // Destructured refetch
 
   // States
   const [shipments, setShipments] = useState<Shipment[]>([]);
@@ -70,11 +75,46 @@ export default function ReceiveGoodsScreen() {
     }, [fetchShipments])
   );
 
-  // Handle refresh
-  const handleRefresh = () => {
-    setRefreshing(true);
-    fetchShipments();
+  const currentShipment = shipments.find(s => s.status === ShipmentStatus.IN_TRANSIT || s.status === ShipmentStatus.DELIVERED) || shipments[0]; // Modified currentShipment logic
+
+  const handleAcceptDelivery = () => {
+    if (!currentShipment) return;
+
+    Alert.alert(
+      'Xác nhận nhận hàng',
+      'Bạn xác nhận đã kiểm tra và nhận đầy đủ số lượng hàng hóa trong shipment này?',
+      [
+        { text: 'Hủy', style: 'cancel' },
+        {
+          text: 'Xác nhận',
+          onPress: () => {
+            receiveAllMutation.mutate(currentShipment.id, {
+              onSuccess: () => {
+                Alert.alert('Thành công', 'Đã nhận hàng thành công.');
+                refetch();
+                setChecklist(checklistItems); // Reset checklist
+              },
+              onError: (error) => {
+                handleErrorApi({ error });
+              }
+            });
+          }
+        }
+      ]
+    );
   };
+
+  if (isLoading || receiveAllMutation.isPending) { // Added receiveAllMutation.isPending
+    return (
+      <View style={styles.center}>
+        <LoadingSpinner size={40} color={COLORS.primary} />
+        {receiveAllMutation.isPending && <Text style={{ marginTop: 10, color: COLORS.textMuted }}>Đang xử lý...</Text>}
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
 
   // Nhận hàng đủ (receive-all)
   const handleReceiveAll = async () => {
@@ -105,53 +145,33 @@ export default function ReceiveGoodsScreen() {
     );
   };
 
-  // Báo cáo vấn đề (receive with details)
-  const handleReportIssue = async () => {
-    if (!selectedShipment || !selectedShipment.items) return;
+          <Button
+            title="Start Scanning"
+            icon="scan"
+            onPress={() => { }}
+            fullWidth
+            style={styles.scanButton}
+          />
+        </Card>
 
-    // Tạo data mặc định: tất cả items nhận đủ, không có hư hỏng
-    // User có thể customize sau
-    const items = selectedShipment.items.map((item: ShipmentItem) => ({
-      batchId: item.batchId,
-      actualQty: item.quantity,
-      damagedQty: 0,
-      evidenceUrls: [],
-    }));
-
-    Alert.alert(
-      'Báo cáo vấn đề',
-      'Bạn có muốn báo cáo hàng thiếu/hỏng?',
-      [
-        { text: 'Hủy', style: 'cancel' },
-        {
-          text: 'Xác nhận',
-          onPress: async () => {
-            try {
-              setLoadingDetail(true);
-              await shipmentApi.receiveWithDetails(selectedShipment.id, {
-                items,
-                notes: 'Nhận hàng có sai lệch',
-              });
-              Alert.alert('Thành công', 'Đã gửi báo cáo');
-              setSelectedShipment(null);
-              fetchShipments();
-            } catch (error) {
-              handleErrorApi({ error });
-            } finally {
-              setLoadingDetail(false);
-            }
-          },
-        },
-      ]
-    );
-  };
-
-  // Format ngày
-  const formatDate = (dateStr: string) => {
-    if (!dateStr) return '';
-    const d = new Date(dateStr);
-    return d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-  };
+        {/* Delivery Information */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Delivery Information</Text>
+          <Card>
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>Shipment ID</Text>
+              <Text style={styles.infoValue}>#{currentShipment?.id.slice(0, 8) ?? '---'}</Text>
+            </View>
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>Supplier</Text>
+              <Text style={styles.infoValue}>{currentShipment?.order?.storeName || 'Supplier'}</Text>
+            </View>
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>Status</Text>
+              <StatusBadge status={currentShipment?.status || 'Pending'} type={getStatusType(currentShipment?.status || 'pending')} size="sm" />
+            </View>
+          </Card>
+        </View>
 
   // Render item trong danh sách
   const renderShipmentItem = ({ item }: { item: Shipment }) => {
@@ -267,22 +287,21 @@ export default function ReceiveGoodsScreen() {
     );
   }
 
-  // Danh sách shipments
-  return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFF" />
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Nhận hàng</Text>
-      </View>
-
-      {loading && !refreshing ? (
-        <View style={styles.loadingContainer}>
-          <LoadingSpinner size={40} />
-        </View>
-      ) : shipments.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Ionicons name="cube-outline" size={64} color={COLORS.textMuted} />
-          <Text style={styles.emptyText}>Không có lô hàng nào</Text>
+        {/* Action Buttons */}
+        <View style={styles.actionsRow}>
+          <Button
+            title="Report Issue"
+            variant="outline"
+            onPress={() => { }}
+            style={styles.actionButton}
+          />
+          <Button
+            title="Accept Delivery"
+            onPress={handleAcceptDelivery}
+            style={styles.actionButton}
+            disabled={!currentShipment || completedCount < checklist.length}
+            loading={receiveAllMutation.isPending}
+          />
         </View>
       ) : (
         <FlatList

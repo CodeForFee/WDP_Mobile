@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, RefreshControl, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, RefreshControl, TouchableOpacity, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LoadingSpinner } from '@/components/common';
 import { COLORS } from '@/constants/theme';
@@ -12,26 +12,25 @@ export function OrdersTabScreen({ orders, loading, refreshing, onRefresh, onView
 
   const filteredOrders = useMemo(() => {
     if (!orders || !Array.isArray(orders)) return [];
-    
+
     return orders.filter((o) => {
-      const status = o.status?.toLowerCase(); // Chuyển về chữ thường để so khớp "pending"
+      const status = o.status?.toLowerCase();
       if (activeTab === 'In progress') {
-        return status === 'pending' || status === 'processing';
+        return status === 'pending' || status === 'processing' || status === 'approved' || status === 'picking';
       }
       if (activeTab === 'Accepted') {
-        return status === 'delivered' || status === 'approved' || status === 'completed';
+        return status === 'delivering' || status === 'completed' || status === 'delivered';
       }
       if (activeTab === 'Rejected') {
-        return status === 'cancelled' || status === 'rejected';
+        return status === 'cancelled' || status === 'rejected' || status === 'claimed';
       }
       return false;
     });
   }, [orders, activeTab]);
 
-  return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+  const renderHeader = () => (
+    <View>
       <Text style={styles.headerTitle}>Orders</Text>
-
       <View style={styles.tabWrapper}>
         {(['In progress', 'Accepted', 'Rejected'] as OrderTabStatus[]).map((tab) => (
           <TouchableOpacity
@@ -43,28 +42,42 @@ export function OrdersTabScreen({ orders, loading, refreshing, onRefresh, onView
           </TouchableOpacity>
         ))}
       </View>
+      {loading && !refreshing && (
+        <View style={styles.centerLoading}><LoadingSpinner size={32} color={COLORS.primary} /></View>
+      )}
+    </View>
+  );
 
-      <ScrollView
+  const renderEmpty = () => {
+    if (loading) return null;
+    return (
+      <View style={styles.emptyBox}>
+        <Text style={{ color: '#999', fontWeight: '500' }}>No {activeTab.toLowerCase()} orders</Text>
+      </View>
+    );
+  };
+
+  return (
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <FlatList
+        data={filteredOrders}
+        keyExtractor={(item) => String(item.id)}
+        renderItem={({ item }) => (
+          <OrderItem order={item} onPress={onViewOrder} />
+        )}
+        ListHeaderComponent={renderHeader}
+        ListEmptyComponent={renderEmpty}
+        ListFooterComponent={<View style={{ height: 100 }} />}
         contentContainerStyle={styles.listContent}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}
         showsVerticalScrollIndicator={false}
-      >
-        {loading && !refreshing && (
-          <View style={styles.centerLoading}><LoadingSpinner size={32} color={COLORS.primary} /></View>
-        )}
-
-        {!loading && filteredOrders.length === 0 && (
-          <View style={styles.emptyBox}>
-            <Text style={{ color: '#999', fontWeight: '500' }}>No {activeTab.toLowerCase()} orders</Text>
-          </View>
-        )}
-
-        {filteredOrders.map((ord: any) => (
-          <OrderItem key={ord.id} order={ord} onPress={onViewOrder} />
-        ))}
-        
-        <View style={{ height: 100 }} />
-      </ScrollView>
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={COLORS.primary}
+          />
+        }
+      />
     </SafeAreaView>
   );
 }
@@ -75,7 +88,7 @@ const styles = StyleSheet.create({
   tabWrapper: {
     flexDirection: 'row',
     backgroundColor: '#FFF',
-    marginHorizontal: 20,
+    marginHorizontal: 0, // Moved inside paddingHorizontal of FlatList content
     borderRadius: 18,
     padding: 6,
     marginBottom: 20,

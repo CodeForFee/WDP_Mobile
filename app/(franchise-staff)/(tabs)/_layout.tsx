@@ -89,7 +89,6 @@ export default function FranchiseTabsLayout() {
 
 // Custom Tab Bar Component
 function CustomTabBar({ state, navigation }: any) {
-    const router = useRouter();
 
     return (
         <View style={styles.container}>
