@@ -14,7 +14,8 @@ type StatusType =
   | 'error'
   | 'info'
   | 'default'
-  | 'shipping';
+  | 'shipping'
+  | 'delivered';
 
 interface StatusBadgeProps {
   status: string;
@@ -28,6 +29,7 @@ const getStatusStyles = (type: StatusType) => {
   switch (type) {
     case 'completed':
     case 'success':
+    case 'delivered':
       return {
         backgroundColor: COLORS.successLight,
         color: COLORS.successDark

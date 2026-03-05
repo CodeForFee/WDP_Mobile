@@ -85,7 +85,7 @@ export default function FranchiseStackLayout() {
 
       {/* Claims List */}
       <Stack.Screen
-        name="claims"
+        name="claims/index"
         options={{
           title: 'Khiếu nại',
           headerShown: true,

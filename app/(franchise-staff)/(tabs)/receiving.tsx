@@ -28,7 +28,31 @@ export default function ReceiveGoodsScreen() {
   const { useMyStoreShipments, receiveAllMutation } = useShipment(); // Destructured receiveAllMutation
   const { data: shipments = [], isLoading, refetch } = useMyStoreShipments(PAGINATION_DEFAULT); // Destructured refetch
 
-  const [checklist, setChecklist] = useState(checklistItems);
+  // States
+  const [shipments, setShipments] = useState<Shipment[]>([]);
+  const [selectedShipment, setSelectedShipment] = useState<ShipmentDetail | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [loadingDetail, setLoadingDetail] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Fetch danh sách shipments
+  const fetchShipments = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await shipmentApi.getMyStoreShipments({ sortOrder: 'DESC' });
+      const data = (res as any)?.items || res;
+      // Lọc chỉ lấy đơn đang chuẩn bị và đang vận chuyển
+      const filtered = Array.isArray(data)
+        ? data.filter((s: any) => s.status === 'preparing' || s.status === 'in_transit')
+        : [];
+      setShipments(filtered);
+    } catch (error) {
+      handleErrorApi({ error });
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, [shipmentApi]);
 
   // Fetch chi tiết shipment
   const fetchShipmentDetail = async (id: string) => {
@@ -344,17 +368,6 @@ const styles = StyleSheet.create({
   itemExpiryText: { fontSize: 12, color: '#E67E22', fontWeight: '600' },
 
   // Actions
-  actionsRow: {
-    flexDirection: 'row',
-    gap: SPACING.md,
-    marginTop: SPACING.md,
-  },
-  actionButton: {
-    flex: 1,
-  },
-  center: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+  actionsRow: { flexDirection: 'row', gap: SPACING.md, marginTop: SPACING.lg },
+  actionButton: { flex: 1 },
 });
