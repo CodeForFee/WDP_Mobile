@@ -66,16 +66,21 @@ export default function FranchiseTabsLayout() {
                 name="receiving"
                 options={{
                     title: 'Receive Goods',
-                    headerShown: true,
-                    headerLeft: () => <BackButton />
+                    headerShown: false,
+                }}
+            />
+            <Tabs.Screen
+                name="claims"
+                options={{
+                    title: 'Claims',
+                    headerShown: false,
                 }}
             />
             <Tabs.Screen
                 name="profile"
                 options={{
                     title: 'Profile',
-                    headerShown: true,
-                    headerLeft: () => <BackButton />
+                    headerShown: false,
                 }}
             />
         </Tabs>
@@ -121,7 +126,7 @@ function CustomTabBar({ state, navigation }: any) {
 
                 {/* Right Group */}
                 <TabItem
-                    icon="bus"
+                    icon="cube"
                     label="Receive"
                     isActive={state.routes[state.index].name === 'receiving'}
                     onPress={() => navigation.navigate('receiving')}

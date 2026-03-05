@@ -5,10 +5,16 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  TextInput,
+  Alert,
+  Modal,
+  Image,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Card, Button, LoadingSpinner } from '@/components/common';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import * as ImagePicker from 'expo-image-picker';
 import { COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS } from '@/constants/theme';
 import { useSessionStore } from '@/stores/storeSession';
 import { useAuth } from '@/hooks/useAuth';
@@ -17,11 +23,11 @@ import { handleErrorApi } from '@/lib/errors';
 import { useAuthContext } from '@/contexts/authContext';
 
 const menuItems = [
-  { id: '1', icon: 'person-outline', label: 'Account Settings', route: '' },
-  { id: '2', icon: 'notifications-outline', label: 'Notifications', route: '' },
-  { id: '3', icon: 'lock-closed-outline', label: 'Privacy & Security', route: '' },
-  { id: '4', icon: 'help-circle-outline', label: 'Help & Support', route: '' },
-  { id: '5', icon: 'information-circle-outline', label: 'About', route: '' },
+  { id: '1', icon: 'warning-outline', label: 'Khiếu nại', route: '/(franchise-staff)/claims' },
+  { id: '2', icon: 'notifications-outline', label: 'Thông báo', route: '' },
+  { id: '3', icon: 'lock-closed-outline', label: 'Bảo mật & Quyền riêng tư', route: '' },
+  { id: '4', icon: 'help-circle-outline', label: 'Trợ giúp & Hỗ trợ', route: '' },
+  { id: '5', icon: 'information-circle-outline', label: 'Về ứng dụng', route: '' },
 ];
 
 export default function ProfileScreen() {
@@ -31,14 +37,84 @@ export default function ProfileScreen() {
   const { useMe } = useAuth();
   const { data: user, isLoading } = useMe();
 
-  const handleLogout = async () => {
-    await logoutContext();
+  const pickImage = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (!permissionResult.granted) {
+      Alert.alert('Lỗi', 'Cần cấp quyền truy cập ảnh');
+      return null;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (result.canceled) {
+      return null;
+    }
+
+    return result.assets[0].uri;
   };
 
-  // Get display name: username or email fallback
-  const displayName = user?.username || session.user?.email || 'User';
+  const handleChangeAvatar = async () => {
+    const uri = await pickImage();
+    if (!uri) return;
+
+    setLoadingUpload(true);
+    try {
+      const avatarUrl = await useAuth.uploadAvatar(uri);
+      await useAuth.updateProfile({ avatar: avatarUrl } as any);
+      setUser({ ...user!, avatar: avatarUrl });
+      Alert.alert('Thành công', 'Đổi ảnh đại diện thành công');
+    } catch (error) {
+      handleErrorApi({ error });
+    } finally {
+      setLoadingUpload(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    Alert.alert(
+      'Đăng xuất',
+      'Bạn có chắc chắn muốn đăng xuất?',
+      [
+        { text: 'Hủy', style: 'cancel' },
+        {
+          text: 'Đăng xuất',
+          style: 'destructive',
+          onPress: async () => {
+            await logoutContext();
+          },
+        },
+      ]
+    );
+  };
+
+  const handleSaveProfile = async () => {
+    setLoadingUpdate(true);
+    try {
+      const updatedUser = await useAuth.updateProfile({
+        fullName: editForm.fullName || undefined,
+        phone: editForm.phone || undefined,
+        email: editForm.email || undefined,
+      });
+      setUser(updatedUser);
+      setShowEditModal(false);
+      Alert.alert('Thành công', 'Cập nhật hồ sơ thành công');
+    } catch (error) {
+      handleErrorApi({ error });
+    } finally {
+      setLoadingUpdate(false);
+    }
+  };
+
+  // Get display name: fullName > username > email
+  const displayName = user?.fullName || user?.username || session.user?.email || 'User';
   const displayRole = user?.role || session.user?.role || 'Staff';
-  const displayStore = session.user?.storeId ? `Store #${session.user.storeId}` : '';
+  const displayStore = session.user?.storeId ? `Cửa hàng #${session.user.storeId}` : '';
 
   if (isLoading) {
     return (
@@ -51,19 +127,33 @@ export default function ProfileScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
         {/* Profile Header */}
-        <View style={styles.header}>
+        <View style={styles.profileHeader}>
           <View style={styles.avatarContainer}>
-            <View style={styles.avatar}>
-              <Ionicons name="person" size={40} color={COLORS.textMuted} />
-            </View>
-            <TouchableOpacity style={styles.editAvatarButton}>
+            <TouchableOpacity
+              style={styles.avatar}
+              onPress={handleChangeAvatar}
+              disabled={loadingUpload}
+            >
+              {loadingUpload ? (
+                <LoadingSpinner size={24} color={COLORS.primary} />
+              ) : user?.avatar ? (
+                <Image source={{ uri: user.avatar }} style={styles.avatarImage} />
+              ) : (
+                <Ionicons name="person" size={40} color={COLORS.textMuted} />
+              )}
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.editAvatarButton}
+              onPress={handleChangeAvatar}
+              disabled={loadingUpload}
+            >
               <Ionicons name="camera" size={16} color={COLORS.textLight} />
             </TouchableOpacity>
           </View>
@@ -75,28 +165,28 @@ export default function ProfileScreen() {
           {user?.email && (
             <Text style={styles.email}>{user.email}</Text>
           )}
-        </View>
+          {user?.phone && (
+            <Text style={styles.phone}>{user.phone}</Text>
+          )}
 
-        {/* Stats */}
-        <View style={styles.statsContainer}>
-          <Card style={styles.statCard}>
-            <Text style={styles.statValue}>127</Text>
-            <Text style={styles.statLabel}>Orders Today</Text>
-          </Card>
-          <Card style={styles.statCard}>
-            <Text style={styles.statValue}>98%</Text>
-            <Text style={styles.statLabel}>Accuracy</Text>
-          </Card>
-          <Card style={styles.statCard}>
-            <Text style={styles.statValue}>4.9</Text>
-            <Text style={styles.statLabel}>Rating</Text>
-          </Card>
+          <Button
+            title="Chỉnh sửa hồ sơ"
+            variant="outline"
+            size="sm"
+            icon="create-outline"
+            onPress={() => setShowEditModal(true)}
+            style={styles.editButton}
+          />
         </View>
 
         {/* Menu Items */}
         <View style={styles.menuSection}>
           {menuItems.map((item) => (
-            <TouchableOpacity key={item.id} style={styles.menuItem}>
+            <TouchableOpacity
+              key={item.id}
+              style={styles.menuItem}
+              onPress={() => item.route ? router.push(item.route as any) : Alert.alert('Thông báo', 'Chức năng đang phát triển')}
+            >
               <View style={styles.menuItemLeft}>
                 <View style={styles.menuItemIcon}>
                   <Ionicons name={item.icon as any} size={22} color={COLORS.primary} />
@@ -110,7 +200,7 @@ export default function ProfileScreen() {
 
         {/* Logout Button */}
         <Button
-          title="Sign Out"
+          title="Đăng xuất"
           variant="outline"
           icon="log-out-outline"
           iconPosition="left"
@@ -119,9 +209,81 @@ export default function ProfileScreen() {
           style={styles.logoutButton}
         />
 
-        <Text style={styles.version}>Version 1.0.0</Text>
+        <Text style={styles.version}>Phiên bản 1.0.0</Text>
       </ScrollView>
-    </View>
+
+      {/* Edit Profile Modal */}
+      <Modal
+        visible={showEditModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowEditModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Chỉnh sửa hồ sơ</Text>
+              <TouchableOpacity onPress={() => setShowEditModal(false)}>
+                <Ionicons name="close" size={24} color={COLORS.textPrimary} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.modalForm}>
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Họ và tên</Text>
+                <TextInput
+                  style={styles.input}
+                  value={editForm.fullName}
+                  onChangeText={(text) => setEditForm({ ...editForm, fullName: text })}
+                  placeholder="Nhập họ và tên"
+                  placeholderTextColor={COLORS.textMuted}
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Số điện thoại</Text>
+                <TextInput
+                  style={styles.input}
+                  value={editForm.phone}
+                  onChangeText={(text) => setEditForm({ ...editForm, phone: text })}
+                  placeholder="Nhập số điện thoại"
+                  placeholderTextColor={COLORS.textMuted}
+                  keyboardType="phone-pad"
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Email</Text>
+                <TextInput
+                  style={styles.input}
+                  value={editForm.email}
+                  onChangeText={(text) => setEditForm({ ...editForm, email: text })}
+                  placeholder="Nhập email"
+                  placeholderTextColor={COLORS.textMuted}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                />
+              </View>
+            </ScrollView>
+
+            <View style={styles.modalActions}>
+              <Button
+                title="Hủy"
+                variant="outline"
+                onPress={() => setShowEditModal(false)}
+                style={styles.modalButton}
+              />
+              <Button
+                title="Lưu"
+                onPress={handleSaveProfile}
+                loading={loadingUpdate}
+                style={styles.modalButton}
+              />
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </SafeAreaView>
   );
 }
 
@@ -130,48 +292,74 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
+  header: {
+    padding: SPACING.base,
+    paddingTop: SPACING.md,
+    backgroundColor: '#FFF',
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  headerTitle: {
+    fontSize: TYPOGRAPHY.fontSize.xl,
+    fontWeight: 'bold',
+    color: COLORS.textPrimary,
+    textAlign: 'center',
+  },
   scrollView: {
     flex: 1,
   },
   content: {
     padding: SPACING.base,
-    paddingTop: SPACING['3xl'],
     paddingBottom: 120,
   },
-  // Header
-  header: {
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  // Profile Header
+  profileHeader: {
     alignItems: 'center',
     marginBottom: SPACING.xl,
+    backgroundColor: '#FFF',
+    borderRadius: RADIUS.lg,
+    padding: SPACING.lg,
+    ...SHADOWS.sm,
   },
   avatarContainer: {
     position: 'relative',
     marginBottom: SPACING.md,
   },
   avatar: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     backgroundColor: COLORS.backgroundSecondary,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 3,
+    borderWidth: 2,
     borderColor: COLORS.primary,
+    overflow: 'hidden',
+  },
+  avatarImage: {
+    width: '100%',
+    height: '100%',
   },
   editAvatarButton: {
     position: 'absolute',
     bottom: 0,
     right: 0,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     backgroundColor: COLORS.primary,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: COLORS.cardBackground,
+    borderColor: '#FFF',
   },
   name: {
-    fontSize: TYPOGRAPHY.fontSize['2xl'],
+    fontSize: TYPOGRAPHY.fontSize.xl,
     fontWeight: TYPOGRAPHY.fontWeight.bold,
     color: COLORS.textPrimary,
     marginBottom: SPACING.xs,
@@ -192,32 +380,13 @@ const styles = StyleSheet.create({
     color: COLORS.textMuted,
     marginTop: SPACING.xs,
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  // Stats
-  statsContainer: {
-    flexDirection: 'row',
-    gap: SPACING.md,
-    marginBottom: SPACING.xl,
-  },
-  statCard: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: SPACING.md,
-    marginBottom: 0,
-  },
-  statValue: {
-    fontSize: TYPOGRAPHY.fontSize.xl,
-    fontWeight: TYPOGRAPHY.fontWeight.bold,
-    color: COLORS.primary,
-  },
-  statLabel: {
-    fontSize: TYPOGRAPHY.fontSize.xs,
+  phone: {
+    fontSize: TYPOGRAPHY.fontSize.sm,
     color: COLORS.textMuted,
-    marginTop: 2,
+    marginTop: SPACING.xs,
+  },
+  editButton: {
+    marginTop: SPACING.md,
   },
   // Menu
   menuSection: {
@@ -261,5 +430,61 @@ const styles = StyleSheet.create({
     fontSize: TYPOGRAPHY.fontSize.sm,
     color: COLORS.textMuted,
     marginBottom: SPACING.lg,
+  },
+  // Modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#FFF',
+    borderTopLeftRadius: RADIUS.xl,
+    borderTopRightRadius: RADIUS.xl,
+    maxHeight: '80%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: SPACING.base,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  modalTitle: {
+    fontSize: TYPOGRAPHY.fontSize.lg,
+    fontWeight: 'bold',
+    color: COLORS.textPrimary,
+  },
+  modalForm: {
+    padding: SPACING.base,
+  },
+  inputGroup: {
+    marginBottom: SPACING.md,
+  },
+  inputLabel: {
+    fontSize: TYPOGRAPHY.fontSize.sm,
+    fontWeight: '600',
+    color: COLORS.textPrimary,
+    marginBottom: SPACING.xs,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: RADIUS.md,
+    padding: SPACING.md,
+    fontSize: TYPOGRAPHY.fontSize.base,
+    color: COLORS.textPrimary,
+    backgroundColor: COLORS.background,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: SPACING.md,
+    padding: SPACING.base,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+  },
+  modalButton: {
+    flex: 1,
   },
 });

@@ -82,6 +82,25 @@ export default function FranchiseStackLayout() {
           headerShown: false,
         }}
       />
+
+      {/* Claims List */}
+      <Stack.Screen
+        name="claims"
+        options={{
+          title: 'Khiếu nại',
+          headerShown: true,
+          headerLeft: () => <BackButton />
+        }}
+      />
+
+      <Stack.Screen
+        name="claims/[id]"
+        options={{
+          title: 'Chi tiết khiếu nại',
+          headerShown: true,
+          headerLeft: () => <BackButton />
+        }}
+      />
     </Stack>
   );
 }

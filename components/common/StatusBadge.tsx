@@ -13,7 +13,8 @@ type StatusType =
   | 'warning'
   | 'error'
   | 'info'
-  | 'default';
+  | 'default'
+  | 'shipping';
 
 interface StatusBadgeProps {
   status: string;
@@ -32,6 +33,7 @@ const getStatusStyles = (type: StatusType) => {
         color: COLORS.successDark
       };
     case 'inProgress':
+    case 'shipping':
       return {
         backgroundColor: COLORS.primaryLight,
         color: COLORS.primaryDark

@@ -137,20 +137,18 @@ export default function CreateOrderScreen() {
       />
 
       {items.length > 0 && (
-        <View style={[styles.floatingCart, { bottom: 30 + insets.bottom }]}>
-          <TouchableOpacity
-            style={styles.cartContent}
-            onPress={() => router.push('/(franchise-staff)/orders/cart' as any)}
-          >
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <View style={styles.cartIconBadge}>
-                <Text style={{ color: COLORS.primary, fontWeight: 'bold' }}>{items.length}</Text>
-              </View>
-              <Text style={styles.viewCartText}> View Cart</Text>
+        <TouchableOpacity
+          style={[styles.floatingCart, { bottom: 30 + insets.bottom }]}
+          onPress={() => router.push('/(franchise-staff)/orders/cart' as any)}
+        >
+          <View style={styles.cartLeft}>
+            <View style={styles.cartBadge}>
+              <Text style={styles.cartBadgeText}>{cartTotalItems}</Text>
             </View>
-            <Ionicons name="chevron-forward" size={20} color="#FFF" />
-          </TouchableOpacity>
-        </View>
+            <Text style={styles.cartText}>View Cart</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color="#FFF" />
+        </TouchableOpacity>
       )}
     </View>
   );
@@ -166,9 +164,6 @@ const styles = StyleSheet.create({
   avatarContainer: { width: 45, height: 45, borderRadius: 22.5, backgroundColor: '#FFF', justifyContent: 'center', alignItems: 'center' },
   searchBar: { backgroundColor: '#FFF', borderRadius: 25, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 15, height: 50 },
   searchInput: { flex: 1, marginLeft: 10, fontSize: 16 },
-  tagScroll: { marginTop: 15 },
-  tag: { backgroundColor: 'rgba(255,255,255,0.3)', paddingHorizontal: 15, paddingVertical: 8, borderRadius: 20, marginRight: 8 },
-  tagText: { fontWeight: '600', color: '#FFF' },
   whiteCardContainer: { flex: 1, backgroundColor: '#FFF', borderTopLeftRadius: 35, borderTopRightRadius: 35, overflow: 'hidden' },
   whiteCard: { flex: 1, padding: 20, paddingBottom: 0 },
   cardHeader: { marginBottom: 15 },
@@ -182,8 +177,9 @@ const styles = StyleSheet.create({
   quantityContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F5F5F5', borderRadius: 25, padding: 4 },
   qtyBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#FFF', justifyContent: 'center', alignItems: 'center', shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 },
   qtyText: { marginHorizontal: 12, fontWeight: 'bold', minWidth: 20, textAlign: 'center' },
-  floatingCart: { position: 'absolute', left: 20, right: 20, backgroundColor: '#000', borderRadius: 30, height: 60, justifyContent: 'center', paddingHorizontal: 20, shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 4.65, elevation: 8 },
-  cartContent: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  cartIconBadge: { backgroundColor: '#FFF', width: 24, height: 24, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginRight: 10 },
-  viewCartText: { color: '#FFF', fontWeight: 'bold', fontSize: 16 },
+  floatingCart: { position: 'absolute', left: 20, right: 20, backgroundColor: '#000', borderRadius: 30, height: 60, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 4.65, elevation: 8 },
+  cartLeft: { flexDirection: 'row', alignItems: 'center' },
+  cartBadge: { backgroundColor: '#FFF', width: 24, height: 24, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginRight: 8 },
+  cartBadgeText: { color: COLORS.primary, fontWeight: 'bold', fontSize: 12 },
+  cartText: { color: '#FFF', fontWeight: 'bold', fontSize: 16 },
 });

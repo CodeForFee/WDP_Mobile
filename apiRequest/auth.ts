@@ -1,6 +1,6 @@
 import api from "@/api/interceptor";
 import { ENDPOINT } from "@/api/endpoint";
-import { LoginInput, ResetPasswordInput, ForgotPasswordInput } from "@/schemas/authSchema";
+import { LoginInput, ResetPasswordInput, ForgotPasswordInput, UpdateProfileBody } from "@/schemas/authSchema";
 import { AuthTokens, User, ResponseData } from "@/type";
 
 export const authRequest = {
@@ -18,5 +18,8 @@ export const authRequest = {
 
     // GET /auth/me : xem thông tin cá nhân
     me: () => api.get<ResponseData<User>>(ENDPOINT.PROFILE),
+
+    // PATCH /auth/profile : cập nhật hồ sơ cá nhân
+    updateProfile: (data: UpdateProfileBody) => api.patch<ResponseData<User>>(ENDPOINT.UPDATE_PROFILE, data),
 };
 

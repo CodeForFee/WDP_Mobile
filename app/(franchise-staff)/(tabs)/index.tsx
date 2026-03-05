@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { Card, StatusBadge, LoadingSpinner, getStatusType } from '@/components/common';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter, useNavigation } from 'expo-router';
 import { COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS } from '@/constants/theme';
 import { useSessionStore } from '@/stores/storeSession';
 import { useAuth } from '@/hooks/useAuth';
@@ -20,6 +20,7 @@ import { PAGINATION_DEFAULT } from '@/constant';
 
 export default function FranchiseDashboard() {
   const router = useRouter();
+  const navigation = useNavigation();
   const session = useSessionStore();
   const { useMe } = useAuth();
   const { useCatalog, useMyStoreOrders } = useOrder();
@@ -130,7 +131,7 @@ export default function FranchiseDashboard() {
         {/* Orders Section - danh sách đơn hàng thật từ API */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Đơn hàng</Text>
-          <TouchableOpacity onPress={() => router.push('/(franchise-staff)/(tabs)/orders' as any)}>
+          <TouchableOpacity onPress={() => (navigation as any).navigate('orders')}>
             <Text style={styles.linkText}>Xem tất cả</Text>
           </TouchableOpacity>
         </View>
@@ -179,6 +180,51 @@ export default function FranchiseDashboard() {
             contentContainerStyle={styles.horizontalList}
           />
         )}
+
+        {/* Incoming Shipments Section */}
+        <View style={[styles.sectionHeader, { marginTop: SPACING.lg }]}>
+          <Text style={styles.sectionTitle}>Hàng đang về</Text>
+          <TouchableOpacity onPress={() => (navigation as any).navigate('receiving')}>
+            <Text style={styles.linkText}>Xem tất cả</Text>
+          </TouchableOpacity>
+        </View>
+
+        {loadingShipments ? (
+          <View style={styles.ordersLoading}>
+            <LoadingSpinner size={20} color={COLORS.primary} />
+            <Text style={styles.ordersLoadingText}>Đang tải...</Text>
+          </View>
+        ) : shipments.length === 0 ? (
+          <View style={styles.ordersEmpty}>
+            <Ionicons name="cube-outline" size={40} color={COLORS.textMuted} />
+            <Text style={styles.ordersEmptyText}>Không có hàng đang về</Text>
+          </View>
+        ) : (
+          <FlatList
+            horizontal
+            data={shipments}
+            renderItem={({ item }) => (
+              <Card style={styles.shipmentCard} onPress={() => (navigation as any).navigate('receiving')}>
+                <View style={styles.shipmentHeader}>
+                  <View style={styles.shipmentIconWrap}>
+                    <Ionicons name="airplane" size={24} color={COLORS.primary} />
+                  </View>
+                  <View style={styles.shipmentInfo}>
+                    <Text style={styles.shipmentId}>Mã: {item.id.slice(0, 8)}...</Text>
+                    <Text style={styles.shipmentStatus}>Đang vận chuyển</Text>
+                  </View>
+                </View>
+                <View style={styles.shipmentOrder}>
+                  <Text style={styles.shipmentOrderLabel}>Đơn hàng:</Text>
+                  <Text style={styles.shipmentOrderId}>{item.order?.storeName || item.orderId.slice(0, 8)}...</Text>
+                </View>
+              </Card>
+            )}
+            keyExtractor={item => item.id}
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.horizontalList}
+          />
+        )}
         <View style={{ height: 100 }} />
       </ScrollView>
     </View>
@@ -221,4 +267,14 @@ const styles = StyleSheet.create({
   skuTag: { backgroundColor: '#F3F4F6', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, marginVertical: 4 },
   catalogSku: { fontSize: 10, color: COLORS.textMuted },
   catalogUnit: { fontSize: 12, color: COLORS.primary, fontWeight: '700' },
+  // Shipment styles
+  shipmentCard: { width: 200, padding: SPACING.md, borderRadius: RADIUS.lg, backgroundColor: '#FFF' },
+  shipmentHeader: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm },
+  shipmentIconWrap: { width: 44, height: 44, borderRadius: 22, backgroundColor: COLORS.primaryLight, alignItems: 'center', justifyContent: 'center' },
+  shipmentInfo: { flex: 1 },
+  shipmentId: { fontSize: TYPOGRAPHY.fontSize.md, fontWeight: 'bold' },
+  shipmentStatus: { fontSize: 12, color: COLORS.primary, fontWeight: '600' },
+  shipmentOrder: { flexDirection: 'row', marginTop: SPACING.sm, gap: 4 },
+  shipmentOrderLabel: { fontSize: 12, color: COLORS.textMuted },
+  shipmentOrderId: { fontSize: 12, color: COLORS.textSecondary, fontWeight: '600' },
 });
