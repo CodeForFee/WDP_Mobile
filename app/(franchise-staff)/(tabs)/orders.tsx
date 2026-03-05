@@ -1,42 +1,24 @@
-import React, { useState, useCallback } from 'react';
+import React, { useCallback } from 'react';
 import { useRouter } from 'expo-router';
-import { useFocusEffect } from '@react-navigation/native';
 import { useOrder } from '@/hooks/useOrder';
-import { OrderMyStore } from '@/type';
 import { handleErrorApi } from '@/lib/errors';
 import { OrdersTabScreen } from '@/components/order/OrdersTabScreen';
 
+import { PAGINATION_DEFAULT } from '@/constant';
+
 export default function OrdersTabRoute() {
   const router = useRouter();
-  const [orders, setOrders] = useState<OrderMyStore[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
-
-  const fetchOrders = useCallback(async () => {
-    setLoading(true);
-    try {
-      const res = await useOrder.getMyStoreOrders();
-      console.log('[OrdersTabRoute] My Store Orders API Response:', res);
-      const data = (res as any)?.items || res;
-      setOrders(Array.isArray(data) ? data : []);
-    } catch (error) {
-      handleErrorApi({ error });
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, []);
-
-  useFocusEffect(
-    useCallback(() => {
-      fetchOrders();
-    }, [fetchOrders])
-  );
+  const { useMyStoreOrders, cancelOrderMutation } = useOrder();
+  const {
+    data: orders = [],
+    isLoading: loading,
+    refetch,
+    isRefetching: refreshing
+  } = useMyStoreOrders(PAGINATION_DEFAULT);
 
   const handleRefresh = useCallback(() => {
-    setRefreshing(true);
-    fetchOrders();
-  }, [fetchOrders]);
+    refetch();
+  }, [refetch]);
 
   const handleViewOrder = useCallback(
     (orderId: string) => {
@@ -54,22 +36,21 @@ export default function OrdersTabRoute() {
         {
           text: 'Có',
           style: 'destructive',
-          onPress: async () => {
-            setLoading(true);
-            try {
-              await useOrder.cancelOrder(orderId);
-              Alert.alert('Thành công', 'Đã hủy đơn hàng');
-              fetchOrders();
-            } catch (error) {
-              handleErrorApi({ error });
-            } finally {
-              setLoading(false);
-            }
+          onPress: () => {
+            cancelOrderMutation.mutate(orderId, {
+              onSuccess: () => {
+                Alert.alert('Thành công', 'Đã hủy đơn hàng');
+                refetch();
+              },
+              onError: (error) => {
+                handleErrorApi({ error });
+              },
+            });
           },
         },
       ]);
     },
-    [fetchOrders]
+    [cancelOrderMutation, refetch]
   );
 
   const handleCreateOrder = useCallback(() => {

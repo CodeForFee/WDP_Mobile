@@ -14,7 +14,7 @@ import { Input, Button } from '@/components/common';
 export default function ForgotPasswordScreen() {
   const router = useRouter();
   const [step, setStep] = useState(1);
-  const [loading, setLoading] = useState(false);
+  const { forgotPasswordMutation, resetPasswordMutation } = useAuth();
 
   // Gộp 2 form thành 1 để giữ vững State của Input OTP
   const {
@@ -41,31 +41,27 @@ export default function ForgotPasswordScreen() {
     const isEmailValid = await trigger('email');
     if (!isEmailValid) return;
 
-    setLoading(true);
     try {
-      const res = await useAuth.forgotPassword(emailValue);
-      Alert.alert('Thông báo', res.message || 'Mã xác thực đã được gửi.');
+      const res = await forgotPasswordMutation.mutateAsync(emailValue);
+      Alert.alert('Thông báo', res?.message || 'Mã xác thực đã được gửi.');
       setStep(2);
     } catch (error) {
       handleErrorApi({ error, setError });
-    } finally {
-      setLoading(false);
     }
   };
 
   // Xử lý đặt lại mật khẩu cuối cùng
   const handleResetPassword = async (values: ResetPasswordInput) => {
-    setLoading(true);
     try {
-      const res = await useAuth.resetPassword(values);
-      Alert.alert('Thành công', res.message);
+      const res = await resetPasswordMutation.mutateAsync(values);
+      Alert.alert('Thành công', res?.message || 'Mật khẩu đã được đặt lại');
       router.replace('/(auth)/login');
     } catch (error) {
       handleErrorApi({ error, setError });
-    } finally {
-      setLoading(false);
     }
   };
+
+  const loading = forgotPasswordMutation.isPending || resetPasswordMutation.isPending;
 
   return (
     <SafeAreaView style={styles.container}>

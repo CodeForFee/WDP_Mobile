@@ -1,45 +1,57 @@
 import { authRequest } from "@/apiRequest/auth";
-import { uploadRequest } from "@/apiRequest/upload";
-import { LoginInput, ResetPasswordInput, ForgotPasswordInput, UpdateProfileBody } from "@/schemas/authSchema";
+import { LoginInput, ResetPasswordInput } from "@/schemas/authSchema";
+import { QUERY_KEY } from "@/constant";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-export const useAuth = {
-  login: async (loginInput: LoginInput) => {
-    const res = await authRequest.login(loginInput);
-    return res.data.data;
-  },
-  logout: async (refreshToken: string) => {
-    await authRequest.logout(refreshToken);
-  },
-  forgotPassword: async (email: string) => {
-    const res = await authRequest.forgotPassword({ email });
-    return res.data.data;
-  },
-  resetPassword: async (resetPasswordInput: ResetPasswordInput) => {
-    const { confirmPassword, ...body } = resetPasswordInput;
-    const res = await authRequest.resetPassword(body);
-    return res.data.data;
-  },
-  me: async () => {
-    const res = await authRequest.me();
-    return res.data.data;
-  },
-  updateProfile: async (data: UpdateProfileBody) => {
-    const res = await authRequest.updateProfile(data);
-    return res.data.data;
-  },
-  uploadAvatar: async (uri: string) => {
-    const filename = uri.split('/').pop() || 'avatar.jpg';
-    const match = /\.(\w+)$/.exec(filename);
-    const type = match ? `image/${match[1]}` : 'image/jpeg';
+export const useAuth = () => {
+  const queryClient = useQueryClient();
 
-    const formData = new FormData();
-    formData.append('file', {
-      uri,
-      name: filename,
-      type,
-    } as any);
+  const useMe = () => {
+    return useQuery({
+      queryKey: QUERY_KEY.auth.me(),
+      queryFn: async () => {
+        const res = await authRequest.me();
+        return res.data.data;
+      },
+    });
+  };
 
-    const result = await uploadRequest.uploadImage(formData);
-    return result.url;
-  },
+  const loginMutation = useMutation({
+    mutationFn: async (loginInput: LoginInput) => {
+      const res = await authRequest.login(loginInput);
+      return res.data.data;
+    },
+  });
+
+  const logoutMutation = useMutation({
+    mutationFn: async (refreshToken: string) => {
+      await authRequest.logout(refreshToken);
+    },
+    onSuccess: () => {
+      queryClient.clear();
+    },
+  });
+
+  const forgotPasswordMutation = useMutation({
+    mutationFn: async (email: string) => {
+      const res = await authRequest.forgotPassword({ email });
+      return res.data.data;
+    },
+  });
+
+  const resetPasswordMutation = useMutation({
+    mutationFn: async (resetPasswordInput: ResetPasswordInput) => {
+      const { confirmPassword, ...body } = resetPasswordInput;
+      const res = await authRequest.resetPassword(body);
+      return res.data.data;
+    },
+  });
+
+  return {
+    useMe,
+    loginMutation,
+    logoutMutation,
+    forgotPasswordMutation,
+    resetPasswordMutation,
+  };
 };

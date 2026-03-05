@@ -34,40 +34,8 @@ export default function ProfileScreen() {
   const router = useRouter();
   const session = useSessionStore();
   const { logout: logoutContext } = useAuthContext();
-
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [loadingUpdate, setLoadingUpdate] = useState(false);
-  const [loadingUpload, setLoadingUpload] = useState(false);
-
-  // Modal state
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [editForm, setEditForm] = useState({
-    fullName: '',
-    phone: '',
-    email: '',
-  });
-
-  useEffect(() => {
-    fetchUserProfile();
-  }, []);
-
-  const fetchUserProfile = async () => {
-    setLoading(true);
-    try {
-      const userData = await useAuth.me();
-      setUser(userData);
-      setEditForm({
-        fullName: userData.fullName || '',
-        phone: userData.phone || '',
-        email: userData.email || '',
-      });
-    } catch (error) {
-      handleErrorApi({ error });
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { useMe } = useAuth();
+  const { data: user, isLoading } = useMe();
 
   const pickImage = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -148,7 +116,7 @@ export default function ProfileScreen() {
   const displayRole = user?.role || session.user?.role || 'Staff';
   const displayStore = session.user?.storeId ? `Cửa hàng #${session.user.storeId}` : '';
 
-  if (loading) {
+  if (isLoading) {
     return (
       <View style={styles.container}>
         <View style={styles.loadingContainer}>
