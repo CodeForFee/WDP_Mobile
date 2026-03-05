@@ -19,7 +19,6 @@ export default function StoreInventoryScreen() {
     setLoading(true);
     try {
       const res = await inventoryRequest.getInventoryStore();
-      console.log('[StoreInventoryScreen] Inventory API Response:', res);
       const data = (res as any)?.data?.data?.items || (res as any)?.data?.items || [];
 
       if (Array.isArray(data)) {
@@ -69,7 +68,7 @@ export default function StoreInventoryScreen() {
       >
 
         {/* Nút Add Item ở vị trí cũ phía trên Grid */}
-        <AddItemButton onPress={() => console.log('Add Item Clicked')} />
+        <AddItemButton onPress={() => {}} />
 
         {loading && !refreshing && (
           <View style={{ marginTop: 20, alignItems: 'center' }}><LoadingSpinner size={32} color={COLORS.primary} /></View>
@@ -80,7 +79,7 @@ export default function StoreInventoryScreen() {
             <InventoryCard
               key={item.id}
               item={item}
-              onPress={() => console.log('Detail', item.id)}
+              onPress={() => {}}
             />
           ))}
         </View>

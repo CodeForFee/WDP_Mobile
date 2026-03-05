@@ -41,7 +41,7 @@ export default function ClaimsScreen() {
 
   const fetchClaims = useCallback(async () => {
     try {
-      const res = await claimApi.getMyStoreClaims({});
+      const res = await claimApi.getMyStoreClaims({sortOrder: 'DESC'});
       const data = (res as any)?.items || res;
       setClaims(Array.isArray(data) ? data : []);
     } catch (error) {
