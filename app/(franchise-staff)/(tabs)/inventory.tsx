@@ -26,6 +26,8 @@ export default function StoreInventoryScreen() {
       name: item.productName || 'Unknown Product',
       calories: 'N/A',
       stock: item.quantity,
+      unit: item.unit,
+      expiryDate: item.expiryDate,
       maxStock: 100,
       price: 0,
       image: item.imageUrl,
@@ -45,9 +47,6 @@ export default function StoreInventoryScreen() {
           <Text style={styles.headerSubtitle}>Quản lý tồn kho</Text>
           <Text style={styles.headerTitle}>Kho hàng của tôi</Text>
         </View>
-        <TouchableOpacity style={styles.addButton} onPress={() => console.log('Add')}>
-          <Ionicons name="add" size={24} color="#FFF" />
-        </TouchableOpacity>
       </View>
 
       <FlatList
@@ -57,7 +56,6 @@ export default function StoreInventoryScreen() {
           <View style={styles.cardWrapper}>
             <InventoryCard
               item={item}
-              onPress={() => router.push(`/ (franchise - staff) / inventory / ${item.id} `)}
             />
           </View>
         )}

@@ -65,7 +65,8 @@ export function Input({
             <View
                 style={[
                     styles.inputContainer,
-                    { height: sizeStyles.height },
+                    { height: props.multiline ? 'auto' : sizeStyles.height },
+                    props.multiline && { minHeight: sizeStyles.height, alignItems: 'flex-start', paddingVertical: SPACING.sm },
                     variant === 'outline' && styles.variantOutline,
                     variant === 'filled' && styles.variantFilled,
                     variant === 'pill' && styles.variantPill,

@@ -126,7 +126,7 @@ function CustomTabBar({ state, navigation }: any) {
 
                 {/* Right Group */}
                 <TabItem
-                    icon="cube"
+                    icon="download"
                     label="Receive"
                     isActive={state.routes[state.index].name === 'receiving'}
                     onPress={() => navigation.navigate('receiving')}
@@ -203,7 +203,6 @@ const styles = StyleSheet.create({
         width: '100%',
         height: TAB_HEIGHT,
         backgroundColor: 'transparent',
-        elevation: 0,
     },
     svgContainer: {
         position: 'absolute',

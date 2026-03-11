@@ -25,7 +25,6 @@ export default function CreateOrderScreen() {
     isRefetching: refreshing
   } = useCatalog(PAGINATION_DEFAULT);
 
-  const categories = ["Bakery", "Spring onions", "Bananas", "Pizza", "Cake"];
 
   const fetchCatalog = async () => {
     refetch();
@@ -43,11 +42,6 @@ export default function CreateOrderScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.circleIcon}>
           <Ionicons name="close" size={28} color="#000" />
         </TouchableOpacity>
-        <View style={styles.topRightIcons}>
-          <View style={styles.avatarContainer}>
-            <Ionicons name="person" size={20} color="#666" />
-          </View>
-        </View>
       </View>
 
       <View style={styles.searchBar}>
@@ -60,20 +54,7 @@ export default function CreateOrderScreen() {
         />
       </View>
 
-      <FlatList
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.tagScroll}
-        data={categories}
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={({ item }) => (
-          <TouchableOpacity style={styles.tag}><Text style={styles.tagText}>{item}</Text></TouchableOpacity>
-        )}
-      />
 
-      <View style={styles.cardHeader}>
-        <Text style={styles.cardTitle}>Shopping list</Text>
-      </View>
       {loading && <LoadingSpinner size={28} color={COLORS.primary} style={{ marginTop: 20 }} />}
     </View>
   );
@@ -158,16 +139,16 @@ export default function CreateOrderScreen() {
 
 const styles = StyleSheet.create({
 
-  container: { flex: 1, backgroundColor: COLORS.primary },
+  container: { flex: 1, backgroundColor: '#FFF' },
   headerBackground: { padding: 20, paddingTop: 10, paddingBottom: 20 },
   topActions: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 },
-  circleIcon: { backgroundColor: '#FFF', width: 45, height: 45, borderRadius: 15, justifyContent: 'center', alignItems: 'center' },
+  circleIcon: { backgroundColor: '#F5F5F5', width: 45, height: 45, borderRadius: 15, justifyContent: 'center', alignItems: 'center' },
   topRightIcons: { flexDirection: 'row', gap: 10 },
   avatarContainer: { width: 45, height: 45, borderRadius: 22.5, backgroundColor: '#FFF', justifyContent: 'center', alignItems: 'center' },
-  searchBar: { backgroundColor: '#FFF', borderRadius: 25, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 15, height: 50 },
+  searchBar: { backgroundColor: '#F5F5F5', borderRadius: 25, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 15, height: 50 },
   searchInput: { flex: 1, marginLeft: 10, fontSize: 16 },
-  whiteCardContainer: { flex: 1, backgroundColor: '#FFF', borderTopLeftRadius: 35, borderTopRightRadius: 35, overflow: 'hidden' },
-  whiteCard: { flex: 1, padding: 20, paddingBottom: 0 },
+  whiteCardContainer: { flex: 1, backgroundColor: '#FFF', overflow: 'hidden' },
+  whiteCard: { padding: 20, paddingBottom: 0 },
   cardHeader: { marginBottom: 15 },
   cardTitle: { fontSize: 18, fontWeight: 'bold' },
   productItem: { flexDirection: 'row', alignItems: 'center', marginBottom: 20, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: '#F0F0F0' },

@@ -177,7 +177,7 @@ export default function ConfirmOrderScreen() {
               <Text>{deliveryDate.toLocaleDateString('vi-VN')}</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
+            {/* <TouchableOpacity
               style={styles.dtBox}
               onPress={() => { setPickerMode('time'); setShowPicker(true); }}
             >
@@ -188,7 +188,7 @@ export default function ConfirmOrderScreen() {
                   minute: '2-digit'
                 })}
               </Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
 
           <Text style={[styles.sectionTitle, { marginTop: 24 }]}>

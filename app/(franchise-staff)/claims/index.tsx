@@ -31,34 +31,17 @@ const getStatusType = (status: string): 'pending' | 'success' | 'error' | 'warni
 
 export default function ClaimsListScreen() {
   const router = useRouter();
-  const claimApi = useClaim;
-
-  const [claims, setClaims] = useState<Claim[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-
-  const fetchClaims = useCallback(async () => {
-    try {
-      const res = await claimApi.getMyStoreClaims({ sortOrder: 'DESC' });
-      const data = (res as any)?.items || res;
-      setClaims(Array.isArray(data) ? data : []);
-    } catch (error) {
-      handleErrorApi({ error });
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [claimApi]);
+  const { useMyStoreClaims } = useClaim();
+  const { data: claims = [], isLoading, isRefetching, refetch } = useMyStoreClaims({ sortOrder: 'DESC' });
 
   useFocusEffect(
     useCallback(() => {
-      fetchClaims();
-    }, [fetchClaims])
+      refetch();
+    }, [refetch])
   );
 
   const handleRefresh = () => {
-    setRefreshing(true);
-    fetchClaims();
+    refetch();
   };
 
   const formatDate = (dateStr: string) => {
@@ -103,7 +86,7 @@ export default function ClaimsListScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      {loading && !refreshing ? (
+      {isLoading && !isRefetching ? (
         <View style={styles.loadingContainer}>
           <LoadingSpinner size={40} />
         </View>
@@ -120,7 +103,7 @@ export default function ClaimsListScreen() {
           contentContainerStyle={styles.listContent}
           refreshControl={
             <RefreshControl
-              refreshing={refreshing}
+              refreshing={isRefetching}
               onRefresh={handleRefresh}
               tintColor={COLORS.primary}
             />

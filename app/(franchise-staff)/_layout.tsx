@@ -101,6 +101,14 @@ export default function FranchiseStackLayout() {
           headerLeft: () => <BackButton />
         }}
       />
+      <Stack.Screen
+        name="claims/report/[id]"
+        options={{
+          title: 'Báo cáo vấn đề',
+          headerShown: true,
+          headerLeft: () => <BackButton />
+        }}
+      />
     </Stack>
   );
 }
