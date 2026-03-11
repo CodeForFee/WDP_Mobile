@@ -35,6 +35,8 @@ export default function CreateOrderScreen() {
     p.name?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const cartTotalItems = items.reduce((sum, i) => sum + i.quantity, 0);
+
   const renderHeader = () => (
     <View style={styles.headerBackground}>
       <View style={styles.topActions}>

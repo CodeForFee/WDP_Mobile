@@ -11,6 +11,7 @@ import {
   Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useQueryClient } from '@tanstack/react-query';
 import { Card, Button, LoadingSpinner } from '@/components/common';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -18,9 +19,11 @@ import * as ImagePicker from 'expo-image-picker';
 import { COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS } from '@/constants/theme';
 import { useSessionStore } from '@/stores/storeSession';
 import { useAuth } from '@/hooks/useAuth';
-import { User } from '@/type';
+import { authRequest } from '@/apiRequest/auth';
+import { uploadRequest } from '@/apiRequest/upload';
 import { handleErrorApi } from '@/lib/errors';
 import { useAuthContext } from '@/contexts/authContext';
+import { QUERY_KEY } from '@/constant';
 
 const menuItems = [
   { id: '1', icon: 'warning-outline', label: 'Khiếu nại', route: '/(franchise-staff)/claims' },
@@ -32,10 +35,26 @@ const menuItems = [
 
 export default function ProfileScreen() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const session = useSessionStore();
   const { logout: logoutContext } = useAuthContext();
   const { useMe } = useAuth();
   const { data: user, isLoading } = useMe();
+
+  const [loadingUpload, setLoadingUpload] = useState(false);
+  const [loadingUpdate, setLoadingUpdate] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editForm, setEditForm] = useState({ fullName: '', phone: '', email: '' });
+
+  useEffect(() => {
+    if (user) {
+      setEditForm({
+        fullName: user.fullName ?? '',
+        phone: user.phone ?? '',
+        email: user.email ?? '',
+      });
+    }
+  }, [user]);
 
   const pickImage = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -65,9 +84,17 @@ export default function ProfileScreen() {
 
     setLoadingUpload(true);
     try {
-      const avatarUrl = await useAuth.uploadAvatar(uri);
-      await useAuth.updateProfile({ avatar: avatarUrl } as any);
-      setUser({ ...user!, avatar: avatarUrl });
+      const formData = new FormData();
+      formData.append('file', {
+        uri,
+        type: 'image/jpeg',
+        name: 'avatar.jpg',
+      } as any);
+      const uploadResult = await uploadRequest.uploadImage(formData);
+      const avatarUrl = typeof uploadResult === 'string' ? uploadResult : (uploadResult as { url?: string }).url;
+      if (!avatarUrl) throw new Error('Upload failed');
+      await authRequest.updateProfile({ avatar: avatarUrl } as any);
+      await queryClient.invalidateQueries({ queryKey: QUERY_KEY.auth.me() });
       Alert.alert('Thành công', 'Đổi ảnh đại diện thành công');
     } catch (error) {
       handleErrorApi({ error });
@@ -96,12 +123,12 @@ export default function ProfileScreen() {
   const handleSaveProfile = async () => {
     setLoadingUpdate(true);
     try {
-      const updatedUser = await useAuth.updateProfile({
+      await authRequest.updateProfile({
         fullName: editForm.fullName || undefined,
         phone: editForm.phone || undefined,
         email: editForm.email || undefined,
       });
-      setUser(updatedUser);
+      await queryClient.invalidateQueries({ queryKey: QUERY_KEY.auth.me() });
       setShowEditModal(false);
       Alert.alert('Thành công', 'Cập nhật hồ sơ thành công');
     } catch (error) {

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import { Platform } from 'react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+
 interface Props {
     children: React.ReactNode;
 }
@@ -22,7 +24,7 @@ export default function QueryClientProviderWrapper({ children }: Props) {
     return (
         <QueryClientProvider client={queryClient}>
             {children}
-            <ReactQueryDevtools initialIsOpen={false} />
+            {Platform.OS === 'web' && <ReactQueryDevtools initialIsOpen={false} />}
         </QueryClientProvider>
     );
 }

@@ -15,7 +15,9 @@ import { COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS } from '@/constants/theme'
 import { useSessionStore } from '@/stores/storeSession';
 import { useAuth } from '@/hooks/useAuth';
 import { useOrder } from '@/hooks/useOrder';
+import { useShipment } from '@/hooks/useShipment';
 import { CatalogItem, OrderMyStore } from '@/type';
+import { ShipmentStatus } from '@/enum';
 import { PAGINATION_DEFAULT } from '@/constant';
 
 export default function FranchiseDashboard() {
@@ -24,10 +26,16 @@ export default function FranchiseDashboard() {
   const session = useSessionStore();
   const { useMe } = useAuth();
   const { useCatalog, useMyStoreOrders } = useOrder();
+  const { useMyStoreShipments } = useShipment();
 
   const { data: user } = useMe();
   const { data: catalog = [], isLoading: loadingCatalog } = useCatalog(PAGINATION_DEFAULT);
   const { data: orders = [], isLoading: loadingOrders } = useMyStoreOrders(PAGINATION_DEFAULT);
+  const { data: allShipments = [], isLoading: loadingShipments } = useMyStoreShipments(PAGINATION_DEFAULT);
+
+  const shipments = allShipments.filter(
+    (s) => s.status === ShipmentStatus.PREPARING || s.status === ShipmentStatus.IN_TRANSIT
+  );
 
 
 
