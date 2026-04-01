@@ -3,18 +3,42 @@ import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '@/constants/theme';
 
+import { OrderStatus } from '@/enum';
+
+const getDotColor = (status: string) => {
+  switch (status) {
+    case OrderStatus.PENDING:
+      return '#89A54D'; // xanh lơ — chờ duyệt
+    case OrderStatus.WAITING_FOR_PRODUCTION:
+      return '#F59E0B'; // vàng — chờ sản xuất
+    case OrderStatus.APPROVED:
+    case OrderStatus.PICKING:
+    case OrderStatus.DELIVERING:
+      return '#3B82F6'; // xanh dương — đang xử lý
+    case OrderStatus.COMPLETED:
+      return '#10B981'; // xanh lá — hoàn thành
+    case OrderStatus.CLAIMED:
+      return '#F97316'; // cam — khiếu nại
+    case OrderStatus.REJECTED:
+    case OrderStatus.CANCELLED:
+      return '#6B7280'; // xám — từ chối/hủy
+    default:
+      return '#89A54D';
+  }
+};
+
 export function OrderItem({ order, onPress }: any) {
   const displayItems = order.items?.slice(0, 2) || [];
 
   return (
-    <TouchableOpacity 
-      style={styles.card} 
-      onPress={() => onPress(order.id)} 
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() => onPress(order.id)}
       activeOpacity={0.9}
     >
       <View style={styles.headerRow}>
         <View style={styles.idGroup}>
-          <View style={[styles.dot, { backgroundColor: order.status === 'pending' ? '#89A54D' : '#FF9500' }]} />
+          <View style={[styles.dot, { backgroundColor: getDotColor(order.status) }]} />
           <Text style={styles.orderId}>Order #{order.id?.slice(0, 5).toUpperCase()}</Text>
         </View>
         {/* Đã bỏ logo message và nút > ở đây */}
@@ -29,11 +53,9 @@ export function OrderItem({ order, onPress }: any) {
       <View style={styles.productSpace}>
         {displayItems.map((item: any, index: number) => (
           <View key={index} style={styles.productRow}>
-            <Image source={{ uri: item.product?.image || 'https://via.placeholder.com/100' }} style={styles.img} />
+            <Image source={{ uri: item.product?.imageUrl || 'https://via.placeholder.com/100' }} style={styles.img} />
             <Text style={styles.productName} numberOfLines={1}>{item.product?.name}</Text>
             <Text style={styles.qty}>x{item.quantityRequested}</Text>
-            {/* Đã bỏ dấu $ ở phần giá của từng món */}
-            <Text style={styles.price}>{item.product?.price}</Text>
           </View>
         ))}
       </View>
@@ -103,17 +125,10 @@ const styles = StyleSheet.create({
     fontWeight: '600', 
     color: '#333' 
   },
-  qty: { 
-    color: '#BBB', 
-    marginRight: 15, 
-    fontSize: 14 
-  },
-  price: { 
-    fontWeight: '800', 
-    fontSize: 14, 
-    color: '#1A1A1A', 
-    width: 40, 
-    textAlign: 'right' 
+  qty: {
+    color: '#BBB',
+    marginRight: 0,
+    fontSize: 14
   },
   statusBadge: { 
     flexDirection: 'row', 

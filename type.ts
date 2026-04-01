@@ -236,6 +236,8 @@ export type Claim = {
 };
 
 export type ClaimItem = {
+  productId?: number;
+  batchId?: number;
   productName: string;
   sku: string;
   quantityMissing: number;

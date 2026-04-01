@@ -9,18 +9,19 @@ import {
   RefreshControl,
   Alert,
   StatusBar,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 
 import { COLORS, TYPOGRAPHY, SPACING } from '@/constants/theme';
-import { Card, StatusBadge, Button, LoadingSpinner, getStatusType } from '@/components/common';
+import { Card, StatusBadge, Button, LoadingSpinner } from '@/components/common';
 import { useShipment } from '@/hooks/useShipment';
 import { PAGINATION_DEFAULT } from '@/constant';
 import { handleErrorApi } from '@/lib/errors';
 import { ShipmentStatus } from '@/enum';
-import { Shipment, ShipmentDetail, ShipmentItem } from '@/type';
+import { Shipment, ShipmentItem } from '@/type';
 
 const formatDate = (dateStr: string) => {
   if (!dateStr) return '';
@@ -34,9 +35,10 @@ const formatDate = (dateStr: string) => {
   });
 };
 
-const RECEIVABLE_STATUSES = [ShipmentStatus.PREPARING, ShipmentStatus.IN_TRANSIT];
+const RECEIVABLE_STATUSES = [ShipmentStatus.IN_TRANSIT];
 
 export default function ReceiveGoodsScreen() {
+  const router = useRouter();
   const { useMyStoreShipments, useShipmentDetail, receiveAllMutation } = useShipment();
   const { data: allShipments = [], isLoading, refetch } = useMyStoreShipments(PAGINATION_DEFAULT);
 
@@ -49,6 +51,7 @@ export default function ReceiveGoodsScreen() {
   const currentShipment = shipments.find(
     (s) => s.status === ShipmentStatus.IN_TRANSIT || s.status === ShipmentStatus.DELIVERED
   ) ?? shipments[0];
+
 
   const handleRefresh = useCallback(() => {
     setRefreshing(true);
@@ -109,7 +112,10 @@ export default function ReceiveGoodsScreen() {
   };
 
   const handleReportIssue = () => {
-    Alert.alert('Báo cáo vấn đề', 'Tính năng báo cáo vấn đề sẽ được triển khai.');
+    const id = shipmentDetail?.id || currentShipment?.id;
+    if (id) {
+      router.push(`/(franchise-staff)/claims/report/${id}` as any);
+    }
   };
 
   const renderShipmentItem = ({ item }: { item: Shipment }) => {
@@ -165,7 +171,7 @@ export default function ReceiveGoodsScreen() {
 
   if (selectedShipmentId && shipmentDetail) {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
+      <SafeAreaView style={styles.container}>
         <StatusBar barStyle="dark-content" backgroundColor="#FFF" />
         <View style={styles.detailHeader}>
           <TouchableOpacity style={styles.backButton} onPress={() => setSelectedShipmentId(null)}>
@@ -246,7 +252,7 @@ export default function ReceiveGoodsScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFF" />
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Nhận hàng</Text>
@@ -258,66 +264,25 @@ export default function ReceiveGoodsScreen() {
           <Text style={styles.emptyText}>Không có lô hàng cần nhận</Text>
         </View>
       ) : (
-        <>
-          {currentShipment && (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Thông tin lô hàng hiện tại</Text>
-              <Card>
-                <View style={styles.infoRow}>
-                  <Text style={styles.infoLabel}>Mã shipment</Text>
-                  <Text style={styles.infoValue}>#{currentShipment.id.slice(0, 8)}...</Text>
-                </View>
-                <View style={styles.infoRow}>
-                  <Text style={styles.infoLabel}>Nhà cung cấp</Text>
-                  <Text style={styles.infoValue}>
-                    {currentShipment.order?.storeName ?? '---'}
-                  </Text>
-                </View>
-                <View style={styles.infoRow}>
-                  <Text style={styles.infoLabel}>Trạng thái</Text>
-                  <StatusBadge
-                    status={currentShipment.status}
-                    type={getStatusType(currentShipment.status)}
-                    size="sm"
-                  />
-                </View>
-              </Card>
-            </View>
-          )}
-
-          <Text style={[styles.sectionTitle, styles.listTitle]}>Danh sách lô hàng</Text>
-          <FlatList
-            data={shipments}
-            renderItem={renderShipmentItem}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={styles.listContent}
-            refreshControl={
-              <RefreshControl
-                refreshing={refreshing}
-                onRefresh={handleRefresh}
-                tintColor={COLORS.primary}
-              />
-            }
-          />
-
-          {currentShipment && (
-            <View style={styles.footerActions}>
-              <Button
-                title="Báo cáo vấn đề"
-                variant="outline"
-                onPress={handleReportIssue}
-                style={styles.actionButton}
-              />
-              <Button
-                title="Xác nhận nhận hàng"
-                onPress={handleAcceptDelivery}
-                style={styles.actionButton}
-                loading={receiveAllMutation.isPending}
-                disabled={!currentShipment}
-              />
-            </View>
-          )}
-        </>
+        <View style={styles.mainContent}>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.sectionTitle, styles.listTitle]}>Danh sách lô hàng</Text>
+            <FlatList
+              data={shipments}
+              renderItem={renderShipmentItem}
+              keyExtractor={(item) => item.id}
+              contentContainerStyle={styles.listContent}
+              style={{ flex: 1 }}
+              refreshControl={
+                <RefreshControl
+                  refreshing={refreshing}
+                  onRefresh={handleRefresh}
+                  tintColor={COLORS.primary}
+                />
+              }
+            />
+          </View>
+        </View>
       )}
     </SafeAreaView>
   );
@@ -429,9 +394,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: SPACING.md,
     padding: SPACING.base,
-    paddingBottom: SPACING.xl,
+    paddingBottom: Platform.OS === 'ios' ? SPACING.xl : SPACING.lg,
     backgroundColor: '#FFF',
     borderTopWidth: 1,
     borderTopColor: COLORS.border,
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  mainContent: {
+    flex: 1,
+    backgroundColor: COLORS.background,
   },
 });

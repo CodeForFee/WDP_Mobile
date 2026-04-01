@@ -4,30 +4,23 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '@/constants/theme';
-import { LoadingSpinner, Button } from '@/components/common';
+import { LoadingSpinner, Button, getStatusType } from '@/components/common';
 import { useOrder } from '@/hooks/useOrder';
 import { OrderStatus } from '@/enum';
 import { handleErrorApi } from '@/lib/errors';
 
-// Màu banner theo status - theo api.md OrderStatus
+// Màu banner theo status — dùng chung getStatusType() từ StatusBadge
+const STATUS_BANNER_COLORS: Record<string, { bg: string; text: string }> = {
+  completed:  { bg: '#D1FAE5', text: '#059669' }, // emerald
+  inProgress: { bg: '#89A54D', text: '#FFF' },    // green (approved/picking/delivering)
+  pending:   { bg: '#FEF3C7', text: '#D97706' }, // amber (pending/waiting_for_production)
+  cancelled:  { bg: '#F3F4F6', text: '#6B7280' }, // gray (rejected/cancelled)
+  warning:   { bg: '#FEF3C7', text: '#B45309' },  // dark amber (claimed)
+  default:   { bg: '#E5E7EB', text: '#374151' },
+};
+
 const getStatusBannerColor = (status: string) => {
-    switch (status) {
-        case OrderStatus.PENDING:
-            return { bg: '#FEF3C7', text: '#D97706' }; // amber
-        case OrderStatus.APPROVED:
-        case OrderStatus.PICKING:
-        case OrderStatus.DELIVERING:
-            return { bg: '#89A54D', text: '#FFF' }; // green
-        case OrderStatus.COMPLETED:
-        case OrderStatus.CLAIMED:
-            return { bg: '#D1FAE5', text: '#059669' }; // emerald
-        case OrderStatus.REJECTED:
-            return { bg: '#FEE2E2', text: '#DC2626' }; // red
-        case OrderStatus.CANCELLED:
-            return { bg: '#F3F4F6', text: '#6B7280' }; // gray
-        default:
-            return { bg: '#89A54D', text: '#FFF' };
-    }
+  return STATUS_BANNER_COLORS[getStatusType(status)] ?? STATUS_BANNER_COLORS.default;
 };
 
 // Hiệu ứng giấy xé (Zigzag) - Tối ưu số lượng Triangle
@@ -110,10 +103,18 @@ export default function OrderDetailsScreen() {
                     {order.items.map((item, index) => (
                         <View key={index} style={styles.itemRow}>
                             <Image source={item.product?.imageUrl ? { uri: item.product.imageUrl } : undefined} style={styles.productImg} />
-                            <Text style={styles.productInfo}>
-                                <Text style={{ fontWeight: '800' }}>{item.quantityRequested ?? '-'} × </Text>
-                                {item.product?.name ?? 'Sản phẩm'}
-                            </Text>
+                            <View style={{ flex: 1 }}>
+                                <Text style={styles.productInfo}>
+                                    <Text style={{ fontWeight: '800' }}>{item.quantityRequested ?? '-'} × </Text>
+                                    {item.product?.name ?? 'Sản phẩm'}
+                                </Text>
+                                {!!item.quantityApproved && item.quantityApproved !== item.quantityRequested && (
+                                    <Text style={{ color: '#EF4444', fontSize: 12, marginTop: 2 }}>
+                                        Đã duyệt: {item.quantityApproved} (
+                                        {Math.round(((item.quantityApproved ?? 0) / item.quantityRequested) * 100)}%)
+                                    </Text>
+                                )}
+                            </View>
                         </View>
                     ))}
 
@@ -122,6 +123,19 @@ export default function OrderDetailsScreen() {
                         <Text style={styles.summaryLabel}>The order items</Text>
                         <Text style={styles.summaryValue}>{order.items.length} items</Text>
                     </View>
+
+                    {/* Partial fulfillment summary */}
+                    {(order.items.some(i => i.quantityApproved !== undefined && i.quantityApproved !== i.quantityRequested)) && (
+                        <View style={[styles.summaryRow, { marginTop: 8 }]}>
+                            <Text style={{ color: '#888', fontWeight: '600' }}>Fulfillment</Text>
+                            <Text style={{
+                                fontWeight: '800',
+                                color: order.items.every(i => (i.quantityApproved ?? 0) >= i.quantityRequested) ? '#22C55E' : '#EF4444'
+                            }}>
+                                {order.items.reduce((sum, i) => sum + (i.quantityApproved ?? 0), 0)} / {order.items.reduce((sum, i) => sum + i.quantityRequested, 0)}
+                            </Text>
+                        </View>
+                    )}
                 </View>
 
                 <ZigzagDivider />

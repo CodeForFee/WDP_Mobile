@@ -74,21 +74,27 @@ const getStatusStyles = (type: StatusType) => {
 // Helper to auto-detect status type from status text
 export const getStatusType = (status: string): StatusType => {
   const s = status.toLowerCase();
-  if (['ready', 'delivered', 'good', 'completed', 'done', 'ready to ship', 'accepted'].includes(s)) {
+  // Completed / delivered states
+  if (['delivered', 'completed', 'done', 'ready', 'good', 'accepted'].includes(s)) {
     return 'completed';
   }
-  if (['preparing', 'processing', 'in progress', 'cooking', 'packing', 'in transit'].includes(s)) {
+  // In-progress / active states (ORDER + SHIPMENT)
+  if (['preparing', 'processing', 'in_progress', 'in transit', 'cooking', 'packing', 'approved', 'picking', 'delivering'].includes(s)) {
     return 'inProgress';
   }
-  if (['pending', 'waiting', 'scheduled', 'queued'].includes(s)) {
+  // Waiting / queued states
+  if (['pending', 'waiting', 'scheduled', 'queued', 'waiting_for_production'].includes(s)) {
     return 'pending';
   }
+  // Cancelled / rejected states
   if (['cancelled', 'rejected', 'failed', 'expired'].includes(s)) {
     return 'cancelled';
   }
-  if (['urgent', 'critical', 'high priority'].includes(s)) {
-    return 'urgent';
+  // Warning / complaint states
+  if (['claimed', 'urgent', 'critical', 'high priority'].includes(s)) {
+    return 'warning';
   }
+  // New / fresh states
   if (['new', 'open', 'fresh'].includes(s)) {
     return 'new';
   }
