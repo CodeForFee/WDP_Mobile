@@ -26,7 +26,8 @@ export enum OrderStatus {
   PICKING = 'picking',
   DELIVERING = 'delivering',
   COMPLETED = 'completed',
-  CLAIMED = 'claimed'
+  CLAIMED = 'claimed',
+  WAITING_FOR_PRODUCTION = 'waiting_for_production'
 }
 
 /** Theo api.md - ShipmentStatus */
@@ -35,6 +36,7 @@ export enum ShipmentStatus {
   IN_TRANSIT = 'in_transit',
   DELIVERED = 'delivered',
   COMPLETED = 'completed',
+  CANCELLED = 'cancelled',
 }
 
 /** Theo api.md - ClaimStatus */

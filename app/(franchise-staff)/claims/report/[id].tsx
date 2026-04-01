@@ -32,11 +32,42 @@ export default function ReportIssueScreen() {
   const [items, setItems] = useState<any[]>([]);
   const [notes, setNotes] = useState("");
   const [uploadingIndices, setUploadingIndices] = useState<number[]>([]);
+  const [countdown, setCountdown] = useState<string | null>(null);
+  const [isExpired, setIsExpired] = useState(false);
+
+  // Countdown 24h từ updatedAt của shipment
+  useEffect(() => {
+    if (!shipmentDetail?.updatedAt) return;
+
+    const deadline = new Date(shipmentDetail.updatedAt).getTime() + 24 * 60 * 60 * 1000;
+
+    const tick = () => {
+      const now = Date.now();
+      const left = deadline - now;
+      if (left <= 0) {
+        setIsExpired(true);
+        setCountdown('Đã hết thời gian khiếu nại');
+        return;
+      }
+      const h = Math.floor(left / 3600000);
+      const m = Math.floor((left % 3600000) / 60000);
+      const s = Math.floor((left % 60000) / 1000);
+      setCountdown(`${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`);
+    };
+
+    tick();
+    const interval = setInterval(tick, 1000);
+    return () => clearInterval(interval);
+  }, [shipmentDetail?.updatedAt]);
 
   useEffect(() => {
     if (shipmentDetail?.items) {
+      // Sort by expiry ASC (FEFO)
+      const sorted = [...shipmentDetail.items].sort(
+        (a, b) => new Date(a.expiryDate).getTime() - new Date(b.expiryDate).getTime()
+      );
       setItems(
-        shipmentDetail.items.map((item: ShipmentItem) => ({
+        sorted.map((item: ShipmentItem) => ({
           batchId: item.batchId,
           productName: item.productName,
           sku: item.sku,
@@ -45,14 +76,33 @@ export default function ReportIssueScreen() {
           actualQty: item.quantity,
           damagedQty: 0,
           evidenceUrls: [],
+          expiryDate: item.expiryDate,
         }))
       );
     }
   }, [shipmentDetail]);
 
+  // FIX LOGIC QUANTITY
   const updateItem = (index: number, field: string, value: string) => {
     const newItems = [...items];
-    newItems[index][field] = parseInt(value) || 0;
+    const num = parseInt(value) || 0;
+
+    if (field === "damagedQty") {
+      const maxDamaged = Math.min(num, newItems[index].expectedQty);
+
+      newItems[index].damagedQty = maxDamaged;
+      newItems[index].actualQty =
+        newItems[index].expectedQty - maxDamaged;
+    }
+
+    if (field === "actualQty") {
+      const maxActual = Math.min(num, newItems[index].expectedQty);
+
+      newItems[index].actualQty = maxActual;
+      newItems[index].damagedQty =
+        newItems[index].expectedQty - maxActual;
+    }
+
     setItems(newItems);
   };
 
@@ -111,18 +161,6 @@ export default function ReportIssueScreen() {
   const handleSubmit = () => {
     if (!id) return;
 
-    const hasError = items.some(
-      (i) => i.actualQty + i.damagedQty > i.expectedQty
-    );
-
-    if (hasError) {
-      Alert.alert(
-        "Lỗi",
-        "Số lượng thực nhận + hư hỏng không được vượt quá dự kiến."
-      );
-      return;
-    }
-
     const payload = {
       items: items.map((i) => ({
         batchId: i.batchId,
@@ -159,7 +197,19 @@ export default function ReportIssueScreen() {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
         <ScrollView contentContainerStyle={styles.content}>
-          {/* Shipment */}
+          {/* Countdown 24h banner */}
+          {countdown && (
+            <View style={{
+              backgroundColor: isExpired ? '#FEE2E2' : '#FEF3C7',
+              padding: 12, marginBottom: 16, borderRadius: 12,
+            }}>
+              <Text style={{ color: isExpired ? '#DC2626' : '#D97706', fontWeight: '700', textAlign: 'center' }}>
+                {isExpired ? '⚠️ ' : '⏰ '}{countdown}
+                {!isExpired && ' — Thời gian khiếu nại'}
+              </Text>
+            </View>
+          )}
+
           <Card style={styles.shipmentCard}>
             <Text style={styles.shipmentLabel}>Mã shipment</Text>
             <Text style={styles.shipmentValue}>{id}</Text>
@@ -169,7 +219,6 @@ export default function ReportIssueScreen() {
 
           {items.map((item, index) => (
             <Card key={index} style={styles.itemCard}>
-              {/* PRODUCT INFO */}
               <View style={styles.productInfo}>
                 <Text style={styles.productName}>
                   {item.productName}
@@ -180,11 +229,13 @@ export default function ReportIssueScreen() {
                 </Text>
 
                 <Text style={styles.expected}>
-                  Dự kiến: {item.expectedQty}
+                  Dự kiến: {item.expectedQty} • Lô: {item.batchCode}
+                </Text>
+                <Text style={{ fontSize: 11, color: '#D97706', marginTop: 2, fontWeight: '600' }}>
+                  📅 HSD: {new Date(item.expiryDate).toLocaleDateString('vi-VN')}
                 </Text>
               </View>
 
-              {/* QTY */}
               <View style={styles.qtyRow}>
                 <Input
                   label="Thực nhận"
@@ -207,7 +258,6 @@ export default function ReportIssueScreen() {
                 />
               </View>
 
-              {/* IMAGES */}
               <View style={styles.images}>
                 {item.evidenceUrls.map((url: string, imgIndex: number) => (
                   <View key={imgIndex} style={styles.imageWrapper}>
@@ -254,9 +304,10 @@ export default function ReportIssueScreen() {
 
         <View style={styles.footer}>
           <Button
-            title="Gửi báo cáo vấn đề"
+            title={isExpired ? "Đã hết thời gian khiếu nại" : "Gửi báo cáo vấn đề"}
             onPress={handleSubmit}
             loading={receiveWithDetailsMutation.isPending}
+            disabled={isExpired}
           />
         </View>
       </KeyboardAvoidingView>

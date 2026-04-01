@@ -16,12 +16,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
 
 import { COLORS, TYPOGRAPHY, SPACING } from '@/constants/theme';
-import { Card, StatusBadge, Button, LoadingSpinner, getStatusType } from '@/components/common';
+import { Card, StatusBadge, Button, LoadingSpinner } from '@/components/common';
 import { useShipment } from '@/hooks/useShipment';
 import { PAGINATION_DEFAULT } from '@/constant';
 import { handleErrorApi } from '@/lib/errors';
 import { ShipmentStatus } from '@/enum';
-import { Shipment, ShipmentDetail, ShipmentItem } from '@/type';
+import { Shipment, ShipmentItem } from '@/type';
 
 const formatDate = (dateStr: string) => {
   if (!dateStr) return '';
@@ -35,7 +35,7 @@ const formatDate = (dateStr: string) => {
   });
 };
 
-const RECEIVABLE_STATUSES = [ShipmentStatus.PREPARING, ShipmentStatus.IN_TRANSIT];
+const RECEIVABLE_STATUSES = [ShipmentStatus.IN_TRANSIT];
 
 export default function ReceiveGoodsScreen() {
   const router = useRouter();
@@ -51,6 +51,7 @@ export default function ReceiveGoodsScreen() {
   const currentShipment = shipments.find(
     (s) => s.status === ShipmentStatus.IN_TRANSIT || s.status === ShipmentStatus.DELIVERED
   ) ?? shipments[0];
+
 
   const handleRefresh = useCallback(() => {
     setRefreshing(true);

@@ -12,7 +12,6 @@ import { Card, StatusBadge, LoadingSpinner, getStatusType } from '@/components/c
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useNavigation } from 'expo-router';
 import { COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS } from '@/constants/theme';
-import { useSessionStore } from '@/stores/storeSession';
 import { useAuth } from '@/hooks/useAuth';
 import { useOrder } from '@/hooks/useOrder';
 import { useShipment } from '@/hooks/useShipment';
@@ -23,7 +22,6 @@ import { PAGINATION_DEFAULT } from '@/constant';
 export default function FranchiseDashboard() {
   const router = useRouter();
   const navigation = useNavigation();
-  const session = useSessionStore();
   const { useMe } = useAuth();
   const { useCatalog, useMyStoreOrders } = useOrder();
   const { useMyStoreShipments } = useShipment();
@@ -33,8 +31,9 @@ export default function FranchiseDashboard() {
   const { data: orders = [], isLoading: loadingOrders } = useMyStoreOrders(PAGINATION_DEFAULT);
   const { data: allShipments = [], isLoading: loadingShipments } = useMyStoreShipments(PAGINATION_DEFAULT);
 
+
   const shipments = allShipments.filter(
-    (s) => s.status === ShipmentStatus.PREPARING || s.status === ShipmentStatus.IN_TRANSIT
+    (s) => s.status === ShipmentStatus.IN_TRANSIT
   );
 
 
