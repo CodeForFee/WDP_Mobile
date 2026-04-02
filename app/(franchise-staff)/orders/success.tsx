@@ -71,7 +71,7 @@ export default function OrderSuccessScreen() {
                 </TouchableOpacity>
 
                 <TouchableOpacity style={styles.btnOutline} onPress={handleGoHome}>
-                    <Text style={styles.btnTextBlack}>Tiếp tục mua sắm</Text>
+                    <Text style={styles.btnTextBlack}>Tạo đơn mới</Text>
                 </TouchableOpacity>
             </View>
         </View>
