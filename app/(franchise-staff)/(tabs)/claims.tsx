@@ -1,23 +1,20 @@
-import React, { useState, useCallback } from 'react';
+import React from 'react';
 import {
   View,
   Text,
   StyleSheet,
   FlatList,
-  TouchableOpacity,
   RefreshControl,
-  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect, useRouter } from 'expo-router';
-import { COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS } from '@/constants/theme';
+import { useRouter } from 'expo-router';
+import { COLORS, TYPOGRAPHY, SPACING } from '@/constants/theme';
 import { Card, StatusBadge, LoadingSpinner } from '@/components/common';
 import { useClaim } from '@/hooks/useClaim';
 import { Claim } from '@/type';
-import { handleErrorApi } from '@/lib/errors';
 
-const getStatusType = (status: string): 'pending' | 'success' | 'error' | 'shipping' => {
+const getStatusType = (status: string): 'pending' | 'success' | 'error' | 'warning' => {
   switch (status) {
     case 'pending':
       return 'pending';
@@ -27,41 +24,15 @@ const getStatusType = (status: string): 'pending' | 'success' | 'error' | 'shipp
     case 'rejected':
       return 'error';
     default:
-      return 'pending';
+      return 'warning';
   }
 };
 
 export default function ClaimsScreen() {
   const router = useRouter();
-  const claimApi = useClaim;
+  const { useMyStoreClaims } = useClaim();
 
-  const [claims, setClaims] = useState<Claim[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-
-  const fetchClaims = useCallback(async () => {
-    try {
-      const res = await claimApi.getMyStoreClaims({sortOrder: 'DESC'});
-      const data = (res as any)?.items || res;
-      setClaims(Array.isArray(data) ? data : []);
-    } catch (error) {
-      handleErrorApi({ error });
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [claimApi]);
-
-  useFocusEffect(
-    useCallback(() => {
-      fetchClaims();
-    }, [fetchClaims])
-  );
-
-  const handleRefresh = () => {
-    setRefreshing(true);
-    fetchClaims();
-  };
+  const { data: claims = [], isLoading, isError, refetch, isRefetching } = useMyStoreClaims({ sortOrder: 'DESC' });
 
   const formatDate = (dateStr: string) => {
     if (!dateStr) return '';
@@ -109,9 +80,14 @@ export default function ClaimsScreen() {
         <Text style={styles.headerTitle}>Khiếu nại</Text>
       </View>
 
-      {loading && !refreshing ? (
+      {isLoading ? (
         <View style={styles.loadingContainer}>
           <LoadingSpinner size={40} />
+        </View>
+      ) : isError ? (
+        <View style={styles.emptyContainer}>
+          <Ionicons name="alert-circle-outline" size={64} color={COLORS.textMuted} />
+          <Text style={styles.emptyText}>Không thể tải danh sách khiếu nại</Text>
         </View>
       ) : claims.length === 0 ? (
         <View style={styles.emptyContainer}>
@@ -126,8 +102,8 @@ export default function ClaimsScreen() {
           contentContainerStyle={styles.listContent}
           refreshControl={
             <RefreshControl
-              refreshing={refreshing}
-              onRefresh={handleRefresh}
+              refreshing={isRefetching}
+              onRefresh={refetch}
               tintColor={COLORS.primary}
             />
           }

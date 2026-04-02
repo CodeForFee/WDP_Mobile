@@ -242,7 +242,7 @@ export type ClaimItem = {
   sku: string;
   quantityMissing: number;
   quantityDamaged: number;
-  reason: string;
+  reason: string | null;
   imageUrl?: string;
 };
 
