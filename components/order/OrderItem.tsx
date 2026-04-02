@@ -2,7 +2,6 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '@/constants/theme';
-
 import { OrderStatus } from '@/enum';
 
 const getDotColor = (status: string) => {
@@ -63,7 +62,6 @@ export function OrderItem({ order, onPress }: any) {
       {/* Đã xóa phần Footer chứa Total Amount */}
 
       <View style={styles.statusBadge}>
-        {/* Đổi Cooking thành Detail và dùng icon tìm kiếm/chi tiết */}
         <Ionicons name="search-outline" size={16} color="#5B7C2E" />
         <Text style={styles.statusText}>Detail</Text>
       </View>
@@ -130,18 +128,18 @@ const styles = StyleSheet.create({
     marginRight: 0,
     fontSize: 14
   },
-  statusBadge: { 
-    flexDirection: 'row', 
-    justifyContent: 'center', 
-    alignItems: 'center', 
-    backgroundColor: '#F8F9F4', 
-    paddingVertical: 12, 
-    borderRadius: 25, 
-    marginTop: 5, 
-    gap: 8 
+  statusBadge: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F8F9F4',
+    paddingVertical: 12,
+    borderRadius: 25,
+    marginTop: 5,
+    gap: 8
   },
-  statusText: { 
-    color: '#5B7C2E', 
+  statusText: {
+    color: '#5B7C2E',
     fontWeight: '700'
   }
 });

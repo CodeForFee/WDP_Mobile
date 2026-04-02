@@ -1,6 +1,8 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { View, Text, StyleSheet, RefreshControl, TouchableOpacity, FlatList, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { LoadingSpinner } from '@/components/common';
 import { COLORS } from '@/constants/theme';
 import { OrderItem } from '@/components/order/OrderItem';
@@ -28,6 +30,7 @@ export function OrdersTabScreen({
   isFetchingNextPage?: boolean;
   isError?: boolean;
 }) {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<OrderTabStatus>('In progress');
 
   const filteredOrders = useMemo(() => {
@@ -58,6 +61,9 @@ export function OrdersTabScreen({
   const renderHeader = () => (
     <View>
       <View style={styles.titleRow}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+          <Ionicons name="arrow-back" size={24} color="#1A1A1A" />
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>Orders</Text>
         <TouchableOpacity style={styles.createBtn} onPress={onCreateOrder}>
           <Text style={styles.createBtnText}>+ New</Text>
@@ -151,7 +157,7 @@ const styles = StyleSheet.create({
   tabWrapper: {
     flexDirection: 'row',
     backgroundColor: '#FFF',
-    marginHorizontal: 0, // Moved inside paddingHorizontal of FlatList content
+    marginHorizontal: 0, 
     borderRadius: 18,
     padding: 6,
     marginBottom: 20,
@@ -170,4 +176,5 @@ const styles = StyleSheet.create({
   errorBanner: { backgroundColor: '#FEE2E2', padding: 12, borderRadius: 10, marginBottom: 12, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   errorText: { color: '#DC2626', fontSize: 13, fontWeight: '500' },
   errorRetry: { color: '#DC2626', fontSize: 13, fontWeight: '700', textDecorationLine: 'underline' },
+  backBtn: { width: 40, height: 40, justifyContent: 'center' },
 });

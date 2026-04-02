@@ -40,8 +40,9 @@ export default function CreateOrderScreen() {
     <View style={styles.headerBackground}>
       <View style={styles.topActions}>
         <TouchableOpacity onPress={() => router.back()} style={styles.circleIcon}>
-          <Ionicons name="close" size={28} color="#000" />
+          <Ionicons name="arrow-back" size={22} color="#000" />
         </TouchableOpacity>
+        <Text style={styles.headerTitle}>Tạo đơn hàng</Text>
       </View>
 
       <View style={styles.searchBar}>
@@ -53,7 +54,6 @@ export default function CreateOrderScreen() {
           onChangeText={setSearchQuery}
         />
       </View>
-
 
       {loading && <LoadingSpinner size={28} color={COLORS.primary} style={{ marginTop: 20 }} />}
     </View>
@@ -141,8 +141,9 @@ const styles = StyleSheet.create({
 
   container: { flex: 1, backgroundColor: '#FFF' },
   headerBackground: { padding: 20, paddingTop: 10, paddingBottom: 20 },
-  topActions: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 },
-  circleIcon: { backgroundColor: '#F5F5F5', width: 45, height: 45, borderRadius: 15, justifyContent: 'center', alignItems: 'center' },
+  topActions: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
+  headerTitle: { fontSize: 18, fontWeight: '800', color: '#1A1A1A' },
+  circleIcon: { width: 45, height: 45, justifyContent: 'center', alignItems: 'center' },
   topRightIcons: { flexDirection: 'row', gap: 10 },
   avatarContainer: { width: 45, height: 45, borderRadius: 22.5, backgroundColor: '#FFF', justifyContent: 'center', alignItems: 'center' },
   searchBar: { backgroundColor: '#F5F5F5', borderRadius: 25, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 15, height: 50 },

@@ -27,9 +27,15 @@ export default function FranchiseDashboard() {
   const { useMyStoreShipments } = useShipment();
 
   const { data: user } = useMe();
-  const { data: catalog = [], isLoading: loadingCatalog } = useCatalog(PAGINATION_DEFAULT);
-  const { data: orders = [], isLoading: loadingOrders } = useMyStoreOrders(PAGINATION_DEFAULT);
-  const { data: allShipments = [], isLoading: loadingShipments } = useMyStoreShipments(PAGINATION_DEFAULT);
+  const { data: catalog = [], isLoading: loadingCatalog, refetch: refetchCatalog } = useCatalog(PAGINATION_DEFAULT);
+  const { data: orders = [], isLoading: loadingOrders, refetch: refetchOrders } = useMyStoreOrders(PAGINATION_DEFAULT);
+  const { data: allShipments = [], isLoading: loadingShipments, refetch: refetchShipments } = useMyStoreShipments(PAGINATION_DEFAULT);
+
+  const handleReload = () => {
+    refetchCatalog();
+    refetchOrders();
+    refetchShipments();
+  };
 
 
   const shipments = allShipments.filter(
@@ -129,9 +135,8 @@ export default function FranchiseDashboard() {
               <Text style={styles.roleText}>{user?.role || 'Staff'}</Text>
             </View>
           </View>
-          <TouchableOpacity style={styles.notifButton}>
-            <Ionicons name="notifications" size={20} color={COLORS.textPrimary} />
-            <View style={styles.notifDot} />
+          <TouchableOpacity style={styles.notifButton} onPress={handleReload}>
+            <Ionicons name="refresh-outline" size={20} color={COLORS.textPrimary} />
           </TouchableOpacity>
         </View>
 
@@ -247,7 +252,6 @@ const styles = StyleSheet.create({
   welcomeText: { fontSize: TYPOGRAPHY.fontSize.lg, fontWeight: 'bold' },
   roleText: { fontSize: TYPOGRAPHY.fontSize.sm, color: COLORS.textMuted },
   notifButton: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#FFF', alignItems: 'center', justifyContent: 'center', ...SHADOWS.sm },
-  notifDot: { position: 'absolute', top: 10, right: 12, width: 8, height: 8, borderRadius: 4, backgroundColor: COLORS.primary, borderWidth: 1, borderColor: '#FFF' },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: SPACING.base, marginBottom: SPACING.md },
   sectionTitle: { fontSize: TYPOGRAPHY.fontSize.xl, fontWeight: 'bold' },
   linkText: { color: COLORS.primary, fontWeight: 'bold' },
