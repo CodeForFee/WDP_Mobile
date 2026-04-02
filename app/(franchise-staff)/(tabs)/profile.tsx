@@ -205,6 +205,37 @@ export default function ProfileScreen() {
             style={styles.editButton}
           />
         </View>
+        <View style={styles.menuSection}>
+          {menuItems.map((item, index) => (
+            <TouchableOpacity
+              key={item.id}
+              style={[
+                styles.menuItem,
+                index === menuItems.length - 1 && { borderBottomWidth: 0 },
+              ]}
+              onPress={() => {
+                if (item.route) router.push(item.route as any);
+              }}
+            >
+              <View style={styles.menuItemLeft}>
+                <View style={styles.menuItemIcon}>
+                  <Ionicons
+                    name={item.icon as any}
+                    size={20}
+                    color={COLORS.primary}
+                  />
+                </View>
+                <Text style={styles.menuItemLabel}>{item.label}</Text>
+              </View>
+              <Ionicons
+                name="chevron-forward"
+                size={20}
+                color={COLORS.textMuted}
+              />
+            </TouchableOpacity>
+          ))}
+        </View>
+
         <Button
           title="Đăng xuất"
           variant="outline"

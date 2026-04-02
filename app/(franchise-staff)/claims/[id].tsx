@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet, ScrollView, Image } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -6,8 +6,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, TYPOGRAPHY, SPACING, RADIUS } from '@/constants/theme';
 import { LoadingSpinner, StatusBadge, Card } from '@/components/common';
 import { useClaim } from '@/hooks/useClaim';
-import { ClaimDetail } from '@/type';
-import { handleErrorApi } from '@/lib/errors';
 
 const getStatusType = (status: string): 'pending' | 'success' | 'error' | 'warning' => {
   switch (status) {
@@ -25,31 +23,16 @@ const getStatusType = (status: string): 'pending' | 'success' | 'error' | 'warni
 
 export default function ClaimDetailScreen() {
   const { id } = useLocalSearchParams();
-  const [claim, setClaim] = useState<ClaimDetail | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { useClaimDetail } = useClaim();
+  const { data: claim, isLoading, isError } = useClaimDetail(id as string);
 
-  useEffect(() => {
-    if (id) fetchClaimDetail();
-  }, [id]);
-
-  const fetchClaimDetail = async () => {
-    try {
-      const data = await useClaim.getClaimById(id as string);
-      setClaim(data);
-    } catch (error) {
-      handleErrorApi({ error });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const formatDate = (dateStr: string) => {
+  const formatDate = (dateStr: string | null | undefined) => {
     if (!dateStr) return '';
     const d = new Date(dateStr);
     return d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <SafeAreaView style={styles.container}>
         <LoadingSpinner size={40} />
@@ -57,7 +40,7 @@ export default function ClaimDetailScreen() {
     );
   }
 
-  if (!claim) {
+  if (isError || !claim) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.emptyContainer}>
